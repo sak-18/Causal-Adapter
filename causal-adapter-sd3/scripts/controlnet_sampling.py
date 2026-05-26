@@ -1,10 +1,13 @@
 import sys
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
+from pathlib import Path
+import os
+
+PROJECT_ROOT = Path(os.getenv("PROJECT_ROOT", Path(__file__).resolve().parents[1]))
+sys.path.append(str(PROJECT_ROOT))
 from diffusers import StableDiffusionCausalControlNetPipeline, Causal_ControlNetModel, UniPCMultistepScheduler,StableDiffusionPipeline
 from diffusers.utils import load_image
 import torch
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 
 def save_images_grid(images_list, grid_size, save_path=None):
@@ -43,12 +46,16 @@ def save_images_grid(images_list, grid_size, save_path=None):
     plt.savefig(save_path)
     plt.close()
 
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
 
 
-base_model_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--sd-legacy--stable-diffusion-v1-5/snapshots/f03de327dd89b501a01da37fc5240cf4fdba85a1"
-
-controlnet_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/2024-10-25T08-56-05-mcpl-all_controlv2_initial_mcpl/controlnet-steps-10000.safetensors/"
-mcpl_embedding_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/2024-10-25T08-56-05-mcpl-all_controlv2_initial_mcpl/learned_embeds-steps-10000.safetensors"
+base_model_path = os.getenv("BASE_MODEL_PATH", "stable-diffusion-v1-5/stable-diffusion-v1-5")
+controlnet_path = _require_env("CONTROLNET_PATH")
+mcpl_embedding_path = _require_env("MCPL_EMBEDDING_PATH")
 controlnet = Causal_ControlNetModel.from_pretrained(controlnet_path, torch_dtype=torch.float32)
 controlnet.eval()
 pipe = StableDiffusionCausalControlNetPipeline.from_pretrained(
@@ -69,7 +76,7 @@ pipe.enable_model_cpu_offload()
 #img_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data/pendulum/test/a_-26_147_11_14.png"
 #c2 = load_image(img_path)
 '''from training set'''
-img_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_4_concepts/pendulum/3/a_10_128_3_13.png"
+img_path = _require_env("CONTROL_IMAGE_PATH")
 #img_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data/pendulum/test/a_-3_126_4_12.png"
 #img_path = random_image_path()
 control_image = load_image(img_path)
@@ -79,7 +86,8 @@ prompt = "orange @ and red * and black & and black !"
 generator = torch.manual_seed(0)
 
 embed_name = mcpl_embedding_path.split('/')[-2]
-output = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/outputs/control_sampling/{}".format(embed_name)
+output_base = os.getenv("OUTPUT_DIR", str(PROJECT_ROOT / "outputs" / "control_sampling"))
+output = os.path.join(output_base, embed_name)
 os.makedirs(output, exist_ok=True)
 save_path = os.path.join(output,'recons.png')
 # save recons with or without controlnet

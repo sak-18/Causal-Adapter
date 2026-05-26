@@ -3,6 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from pathlib import Path
 
 def save_images_grid(images, grid_size, save_path=None):
     """
@@ -36,7 +37,17 @@ def save_images_grid(images, grid_size, save_path=None):
     plt.close()
 
 
-model_id = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--sd-legacy--stable-diffusion-v1-5/snapshots/f03de327dd89b501a01da37fc5240cf4fdba85a1"
+PROJECT_ROOT = Path(os.getenv("PROJECT_ROOT", Path(__file__).resolve().parents[1]))
+
+
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
+model_id = os.getenv("BASE_MODEL_PATH", "stable-diffusion-v1-5/stable-diffusion-v1-5")
 pipe = StableDiffusionPipeline.from_pretrained(model_id,torch_dtype=torch.float16).to("cuda")
 pipe.scheduler = DDIMScheduler.from_config(
     pipe.scheduler.config
@@ -44,12 +55,13 @@ pipe.scheduler = DDIMScheduler.from_config(
 pipe.safety_checker = None
 pipe.requires_safety_checker = False
 
-repo_id_embeds = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/2024-10-11T10-58-52-mcpl-all/learned_embeds-steps-7000.safetensors"
+repo_id_embeds = _require_env("MCPL_EMBEDDING_PATH")
 pipe.load_mcpl_inversion(repo_id_embeds)
 
 
 embed_name = repo_id_embeds.split('/')[-2]
-output = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/outputs/txt2img/{}".format(embed_name)
+output_base = os.getenv("OUTPUT_DIR", str(PROJECT_ROOT / "outputs" / "txt2img"))
+output = os.path.join(output_base, embed_name)
 os.makedirs(output, exist_ok=True)
 prompt = "a photo of orange @ and red * and black & and black !"
 save_path = os.path.join(output,prompt+'.png')
