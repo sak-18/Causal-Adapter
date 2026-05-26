@@ -1,0 +1,46 @@
+# Global cache/editor
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.swp
+
+# Notebook artifacts
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Local environments and secrets
+.env
+.env.*
+*.local
+.venv/
+venv/
+env/
+
+# Common model/data artifacts
+*.safetensors
+*.ckpt
+*.pth
+*.pt
+*.pkl
+*.npy
+*.npz
+
+# Archives
+*.zip
+*.tar
+*.gz
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs and outputs
+logs/
+logs_mtx/
+lightning_logs/
+outputs/
+wandb/

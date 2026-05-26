@@ -1,0 +1,28 @@
+{
+    "anticausal_graph": {
+        "pendulum": ["shadow_length", "shadow_position"],
+        "light": ["shadow_length", "shadow_position"],
+        "shadow_length": [],
+        "shadow_position": []
+    },
+
+    "attribute_size": {
+        "pendulum": 1,
+        "light": 1,
+        "shadow_length": 1,
+        "shadow_position" : 1
+    },
+
+    "dataset": "pendulum",
+    "version": "standard",
+    "ckpt_path" : "./checkpoints/pendulum/trained_classifiers/",
+    "in_shape" : [3, 96, 96] ,
+    "patience" : 20,
+    "batch_size_train" : 64,
+    "batch_size_val" : 128,
+    "lr" : 1e-4,
+    "n_channels": [3, 8, 16, 32, 32, 64, 1],
+    "max_epochs" : 1000,
+    "train_val_split" : 0.9,
+    "ema": "True"
+}

@@ -1,0 +1,62 @@
+# Initially taken from GitHub's Python gitignore file
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# tests and logs
+tests/fixtures/cached_*_text.txt
+logs/
+logs_mtx/
+lightning_logs/
+lang_code_data/
+
+# Ignore all files in the /model_weights folder
+model_weights/
+dataset/
+.cache/
+.vscode/
+outputs/
+kubectl/
+kubectl_p4d/
+commands.txt
+commands_celeA.txt
+commands_chexpert.txt
+commands_skincancer.txt
+commands_adni.txt
+commands_morphomnist.txt
+
+# Open-source release hygiene
+.idea/
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Secrets and local env
+.env
+.env.*
+*.local
+
+# Model artifacts and binaries
+*.safetensors
+*.ckpt
+*.pth
+*.pt
+*.pkl
+*.npy
+*.npz
+
+# Archives and generated exports
+*.zip
+*.tar
+*.gz
+
+# Python packaging/build
+build/
+dist/
+*.egg-info/
+
+

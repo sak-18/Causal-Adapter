@@ -1,0 +1,46 @@
+{
+    "causal_graph": {
+        "Smiling": ["Mouth_Slightly_Open"],
+        "Eyeglasses": [],
+        "Mouth_Slightly_Open": [],
+        "Male": [],
+        "Bald": [],
+        "Wearing_Lipstick": [],
+        "Wearing_Hat": [],
+        "image": ["Smiling","Eyeglasses","Mouth_Slightly_Open","Male","Bald","Wearing_Lipstick","Wearing_Hat"]
+    },
+    "attribute_size": {
+        "Smiling": 1,
+        "Eyeglasses": 1,
+        "Mouth_Slightly_Open": 1,
+        "Male": 1,
+        "Bald": 1,
+        "Wearing_Lipstick":1,
+        "Wearing_Hat": 1
+    },
+    "mechanism_models": {
+        "image": {
+            "model_type": "vae",
+            "model_class": "CelebaCondVAE",
+            "module": "models.vaes",
+            "params": {
+                "n_chan" : [3, 32, 64, 128, 256, 256],
+                "latent_dim" : 16,
+                "hidden_dim": 256,
+                "beta" : 5,
+                "lr" : 0.0005,
+                "gradient_clip_val": 350,
+                "batch_size_train" : 256,
+                "batch_size_val" : 256,
+                "patience" : 10,
+                "max_epochs" : 1000,
+                "weight_decay": 0,
+                "ema": "True",
+                "fixed_logvar": "False"
+            }
+        }
+    },
+
+    "dataset": "celebahq",
+    "checkpoint_dir": "./checkpoints/celebahq/simple/trained_scm"
+}

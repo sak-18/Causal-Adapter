@@ -1,0 +1,110 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kzzr229-cd-chexpert
+  namespace: fcvm
+spec:
+  ttlSecondsAfterFinished: 10
+  backoffLimit: 0
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        # cluster-autoscaler.kubernetes.io/safe-to-evict: 'false'
+      labels:
+        app: fcvm
+        env: miniconda
+        project: azimuth
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: job-name
+                operator: In
+                values:
+                - job-fcvm-kubectl-example
+            topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - name: fcvm-data-volume
+          persistentVolumeClaim:
+            claimName: fcvm-data-volume
+      containers:
+        - name: pytorch-job
+          image: harbor.csis.astrazeneca.net/azimuth-iron/cai-bp/cuda122/p4d:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/jovyan/fcvm-data-volume
+              name: fcvm-data-volume
+          env:
+            - name: HTTP_PROXY
+              value: http://azpse.astrazeneca.net:9480
+            - name: HTTPS_PROXY
+              value: http://azpse.astrazeneca.net:9480
+            - name: NO_PROXY
+              value: 10.0.0.0/8,172.29.0.0/8,astrazeneca.net
+            # - name: TMPDIR
+            #   value: "/home/jovyan/vol-1/root_chen/git_chen/data/data_chen/tmp"
+            # - name: WANDB_BASE_URL
+            #   value: https://azimuth-wandb.paas-iron.astrazeneca.net
+            # - name: WANDB_API_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       key: KEY
+            #       name: wandb
+          command: [/usr/bin/bash, -c]
+          args:
+            - |
+              export PATH="$HOME/bin:$PATH"
+              export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
+              source ~/.bashrc
+              source activate mcpl
+              echo "-----nvidia check"
+              nvidia-smi
+              echo "-----training job" 
+              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser
+              accelerate launch causal_discovery.py  --output_name "cd_only_attr_accu120_BN" \
+                --output_dir "./logs_mtx/logs_chexpert_data100" \
+                --pretrained_model_name_or_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
+                --dataset 'chexpert' \
+                --train_data_dir "/home/jovyan/fcvm-data-volume/kzzr229/workspace/causal_datasets/cheXpert/sampling_100" \
+                --learnable_property "object" \
+                --resolution 256 \
+                --mixed_precision "no" \
+                --train_batch_size 40 \
+                --dataloader_num_workers 0 \
+                --gradient_accumulation_steps 1\
+                --max_train_steps 15000 \
+                --checkpointing_steps 5000 \
+                --learning_rate 5e-4 \
+                --lr_scheduler "constant" \
+                --lr_warmup_steps 0 \
+                --num_validation_images 1 \
+                --placeholder_string 'a detailed chest x ray image of a age year old gender patient diagnosed with specific disease' \
+                --presudo_words 'a,detailed,chest,x,ray,image,of,age,year,old,gender,patient,diagnosed,with,specific,disease' \
+                --concept_words "gender,age,disease" \
+                --mcpl_training "False" \
+                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_chexpert_data100/2024-12-05T11-32-41-mcpl-all/learned_embeds-steps-6000.safetensors" \
+                
+          resources:
+            requests:
+              memory: "300Gi"
+              cpu: "30"
+              nvidia.com/gpu: 3
+            limits:
+              memory: "300Gi"
+              cpu: "30"
+              nvidia.com/gpu: 3
+      nodeSelector:
+        instance-type: p4d.24xlarge
+      tolerations:
+      - key: "as_gpu_p4d_24xlarge_reserved_ns"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      - key: "as_gpu_p4d_24xlarge_reserved_ne"
+        operator: "Equal"
+        value: "true"
+        effect: "NoExecute"

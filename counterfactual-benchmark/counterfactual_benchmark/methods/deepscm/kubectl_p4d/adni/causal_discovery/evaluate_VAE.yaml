@@ -1,0 +1,90 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kzzr229-test-reg5
+  namespace: fcvm
+spec:
+  ttlSecondsAfterFinished: 10
+  backoffLimit: 0
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        # cluster-autoscaler.kubernetes.io/safe-to-evict: 'false'
+      labels:
+        app: fcvm
+        env: miniconda
+        project: azimuth
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: job-name
+                operator: In
+                values:
+                - job-fcvm-kubectl-example
+            topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - name: fcvm-data-volume
+          persistentVolumeClaim:
+            claimName: fcvm-data-volume
+      containers:
+        - name: pytorch-job
+          image: harbor.csis.astrazeneca.net/azimuth-iron/cai-bp/cuda122/p4d:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/jovyan/fcvm-data-volume
+              name: fcvm-data-volume
+          env:
+            - name: HTTP_PROXY
+              value: http://azpse.astrazeneca.net:9480
+            - name: HTTPS_PROXY
+              value: http://azpse.astrazeneca.net:9480
+            - name: NO_PROXY
+              value: 10.0.0.0/8,172.29.0.0/8,astrazeneca.net
+            # - name: TMPDIR
+            #   value: "/home/jovyan/vol-1/root_chen/git_chen/data/data_chen/tmp"
+            # - name: WANDB_BASE_URL
+            #   value: https://azimuth-wandb.paas-iron.astrazeneca.net
+            # - name: WANDB_API_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       key: KEY
+            #       name: wandb
+          command: [/usr/bin/bash, -c]
+          args:
+            - |
+              export PATH="$HOME/bin:$PATH"
+              export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
+              export MKL_NUM_THREADS=1
+              export OMP_NUM_THREADS=1
+              source ~/.bashrc
+              source activate mcpl
+              echo "-----nvidia check"
+              nvidia-smi
+              echo "-----training job" 
+              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              python evaluate.py -c configs/adni/vae.json -clf configs/adni/classifier.json -m "minimality" --embeddings "vae"
+          resources:
+            requests:
+              memory: "100Gi"
+              cpu: "10"
+              nvidia.com/gpu: 1
+            limits:
+              memory: "100Gi"
+              cpu: "10"
+              nvidia.com/gpu: 1
+      nodeSelector:
+        instance-type: p4d.24xlarge
+      tolerations:
+      - key: "as_gpu_p4d_24xlarge_reserved_ns"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      - key: "as_gpu_p4d_24xlarge_reserved_ne"
+        operator: "Equal"
+        value: "true"
+        effect: "NoExecute"

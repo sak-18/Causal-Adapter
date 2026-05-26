@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: "Causal-Adapter"
+message: "If you use this software, please cite the associated paper."
+type: software
+authors:
+  - family-names: Tong
+    given-names: Lei
+repository-code: "https://github.com/LeiTong02/Causal-Adapter"
+license: "See repository license"
+abstract: "Codebase for Causal-Adapter: Taming Text-to-Image Diffusion for Faithful Counterfactual Generation."

@@ -1,0 +1,16 @@
+#produce qualitative
+python evaluate_SD.py --dataset "celeA_complex" --qualitative 2 --embeddings "lpips" --cycles 1 2 --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-100000.safetensors" --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-100000.safetensors"
+
+
+# evaluate_composition
+python evaluate_SD.py --dataset "celeA_complex" --embeddings "lpips" --cycles 1 2 --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-100000.safetensors" --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-100000.safetensors"
+
+# evaluate_effectiveness
+python evaluate_SD.py --dataset "celeA_complex" --metrics "effectiveness" --embeddings "lpips" --bs 6 --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-100000.safetensors" --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-100000.safetensors"
+
+#evaluate fid and minimality
+python evaluate_SD.py --dataset "celeA_complex" --embeddings "lpips" --metrics "minimality" --bs 6 --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-100000.safetensors" --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-100000.safetensors"
+
+
+#compute fid and minimality
+python compute_FID.py --dataset "celeA_complex" --embeddings "clip" --metrics "minimality" --bs 12 --file_saved_path "./saved/celeA_complex/FID/" --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-100000.safetensors" --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-17T20-43-28-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-100000.safetensors"

@@ -1,0 +1,101 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fcvm-kubectl-example
+  namespace: fcvm
+spec:
+  ttlSecondsAfterFinished: 10
+  backoffLimit: 0
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        # cluster-autoscaler.kubernetes.io/safe-to-evict: 'false'
+      labels:
+        app: fcvm
+        env: miniconda
+        project: azimuth
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: job-name
+                operator: In
+                values:
+                - job-fcvm-kubectl-example
+            topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - name: fcvm-data-volume
+          persistentVolumeClaim:
+            claimName: fcvm-data-volume
+      containers:
+        - name: pytorch-job
+          image: harbor.csis.astrazeneca.net/azimuth-iron/cai-bp/cuda121/codeserver
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/jovyan/fcvm-data-volume
+              name: fcvm-data-volume
+          env:
+            - name: HTTP_PROXY
+              value: http://azpzen.astrazeneca.net:9480
+            - name: HTTPS_PROXY
+              value: http://azpzen.astrazeneca.net:9480
+            - name: NO_PROXY
+              value: 10.0.0.0/8,172.29.0.0/8,astrazeneca.net
+            # - name: WANDB_BASE_URL
+            #   value: https://azimuth-wandb.paas-iron.astrazeneca.net
+            # - name: WANDB_API_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       key: KEY
+            #       name: wandb
+          command: [/usr/bin/bash, -c]
+          args:
+            - |
+              export PATH="$HOME/bin:$PATH"
+              export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
+              source ~/.bashrc
+              source activate mcpl
+              echo "-----nvidia check"
+              nvidia-smi
+              echo "-----training job" 
+              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser
+              accelerate launch MCPL.py --output_name "mcpl-all" \
+                --dataset 'chexpert' \
+                --output_dir "./logs/logs_chexpert_data100/" \
+                --pretrained_model_name_or_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
+                --train_data_dir "/home/jovyan/fcvm-data-volume/kzzr229/workspace/causal_datasets/cheXpert/sampling_100" \
+                --learnable_property "object" \
+                --resolution 256 \
+                --train_batch_size 4 \
+                --gradient_accumulation_steps 1 \
+                --max_train_steps 6100 \
+                --checkpointing_steps 6100 \
+                --learning_rate 5.0e-04 \
+                --lr_scheduler "constant" \
+                --lr_warmup_steps 0 \
+                --placeholder_string 'A detailed chest X ray image of a age year old sex patient diagnosed with specific disease' \
+                --presudo_words 'a,detailed,chest,X,ray,image,of,age,year,old,sex,patient,diagnosed,with,specific,disease' \
+          resources:
+            requests:
+              memory: "100Gi"
+              cpu: "10"
+              # nvidia.com/gpu: "1"
+            limits:
+              memory: "100Gi"
+              cpu: "10"
+              # nvidia.com/gpu: "1"
+      nodeSelector:
+        instance-type: g5.8xlarge
+      tolerations:
+      - key: "as_gpu_g5_8xlarge_ns"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      - key: "as_gpu_g5_8xlarge_ne"
+        operator: "Equal"
+        value: "true"
+        effect: "NoExecute"

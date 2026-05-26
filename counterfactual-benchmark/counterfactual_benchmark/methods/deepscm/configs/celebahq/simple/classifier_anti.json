@@ -1,0 +1,20 @@
+{
+    "anticausal_graph": {
+        "Smiling": [],
+        "Eyeglasses": []
+    },
+    "attribute_size": {
+        "Smiling": 1,
+        "Eyeglasses": 1
+    },
+
+    "dataset": "celebahq",
+    "ckpt_path" : "./checkpoints/celebahq/simple/trained_classifiers/backed1/",
+    "in_shape" : [3, 64, 64] ,
+    "patience" : 15,
+    "batch_size_train" : 128,
+    "batch_size_val" : 128,
+    "lr" : 1e-3,
+    "max_epochs" : 1000,
+    "ema": "True"
+}

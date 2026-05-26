@@ -1,0 +1,6 @@
+Average lpips composition score for 1 cycles: mean 0.026 std 0.005
+Average l1 uint8 score for 1 cycles: mean 159.089 std 44.211
+Average l1 int8 score for 1 cycles: mean 4.997 std 1.104
+Average lpips composition score for 2 cycles: mean 0.055 std 0.007
+Average l1 uint8 score for 2 cycles: mean 165.576 std 46.449
+Average l1 int8 score for 2 cycles: mean 8.816 std 1.876

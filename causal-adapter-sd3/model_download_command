@@ -1,0 +1,31 @@
+"""Model download helper.
+
+Usage:
+  1) Set HF_TOKEN in your shell environment.
+  2) Optionally set HF_ENDPOINT for private mirrors.
+  3) Run: python model_download_command
+"""
+
+import os
+from huggingface_hub import snapshot_download
+
+
+def main() -> None:
+	os.environ.setdefault("HF_HUB_ETAG_TIMEOUT", "86400")
+	os.environ.setdefault("HF_HUB_DOWNLOAD_TIMEOUT", "86400")
+
+	# Optional private mirror endpoint, for example:
+	# export HF_ENDPOINT="https://your-mirror-endpoint"
+	hf_token = os.getenv("HF_TOKEN")
+	if not hf_token:
+		raise RuntimeError("HF_TOKEN is not set. Export HF_TOKEN before running this script.")
+
+	snapshot_download(
+		repo_id="sentence-transformers/all-MiniLM-L6-v2",
+		etag_timeout=int(os.environ["HF_HUB_ETAG_TIMEOUT"]),
+		token=hf_token,
+	)
+
+
+if __name__ == "__main__":
+	main()
