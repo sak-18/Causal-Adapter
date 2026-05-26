@@ -49,7 +49,7 @@ def get_parser(**parser_kwargs):
         "--ckpt_path",
         type=str,
         const=True,
-        default='/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--sd-legacy--stable-diffusion-v1-5/snapshots/f03de327dd89b501a01da37fc5240cf4fdba85a1',
+        default='${PROJECT_ROOT}/.cache/huggingface/hub/models--sd-legacy--stable-diffusion-v1-5/snapshots/f03de327dd89b501a01da37fc5240cf4fdba85a1',
         nargs="?",
         help="pretrained model path",
     )

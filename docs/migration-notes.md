@@ -19,14 +19,17 @@
   - causal-adapter-sd3/scripts/controlnet_sampling.py
   - causal-adapter-sd15/causal_modules/ddim_modules.py
   - causal-adapter-sd15/causal_modules/__init__.py
+- Extended portability cleanup across non-notebook code/config:
+  - benchmark evaluation/metrics entrypoints in `counterfactual-benchmark/counterfactual_benchmark/methods/deepscm`
+  - benchmark dataset and embedding modules under `counterfactual-benchmark/counterfactual_benchmark/ctf_datasets` and `evaluation/embeddings`
+  - SD1.5/SD3 core train/inference helper scripts (`MCPL_linear*`, `causalnet*`, `causal_modules/*`)
+  - kubectl YAML and command/config templates by replacing machine-specific absolute paths with placeholders
 
 ## Remaining Work
 
-A larger set of legacy absolute paths still exists in:
+Legacy absolute paths now remain primarily in:
 
-- show_attn_maps scripts
-- kubectl yaml templates
-- some training/evaluation scripts in sd15/sd3 and benchmark modules
+- notebook files (`*.ipynb`) with historical experiment cells/outputs
 
 These should be migrated to environment-variable-driven configuration using:
 
@@ -41,7 +44,6 @@ These should be migrated to environment-variable-driven configuration using:
 
 Proceed with staged replacement by priority:
 
-1. Training/evaluation entrypoints
-2. Production/benchmark configs
-3. Utility/visualization scripts
-4. Notebook examples (last)
+1. Notebook cleanup (remove machine-specific literals from code and markdown cells)
+2. Optional notebook metadata/output stripping before public release
+3. Final smoke tests for sd15/sd3/benchmark commands in fresh environments

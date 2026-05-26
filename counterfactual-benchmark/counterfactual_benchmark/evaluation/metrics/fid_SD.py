@@ -3,8 +3,11 @@ from torchmetrics.image.fid import FrechetInceptionDistance as FID
 from torchmetrics.image.fid import NoTrainInceptionV3
 from tqdm import tqdm
 import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
 sys.path.append("../../")
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
+sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
 from models.utils import rgbify
 from causal_modules import ddim_modules
 def fid(real_images, generated_images,pipe,args):

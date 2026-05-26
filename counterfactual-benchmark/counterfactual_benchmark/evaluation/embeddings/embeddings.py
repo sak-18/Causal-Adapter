@@ -1,7 +1,10 @@
 from .vgg import vgg, vgg_normalize
 from .classifier_embeddings import ClassifierEmbeddings
 import os 
-os.environ["TORCH_HOME"] = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/.cache/torch"
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+os.environ.setdefault("TORCH_HOME", str(REPO_ROOT / "counterfactual-benchmark" / ".cache" / "torch"))
 from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity as LPIPS
 import numpy as np
 import sys
@@ -59,7 +62,8 @@ def get_embedding_model(embedding, pretrained_vgg, classifier_config=None):
             }
             model = ADNICondVAE(params, attribute_size, unconditional=True).eval().to('cuda')
             # add path of an unconditional VAE trained on ADNI
-            model.load_state_dict(torch.load('/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/checkpoints/adni/trained_uncond_vae/image_vae-epoch=25.ckpt', map_location=torch.device('cuda'))["state_dict"])
+            adni_ckpt = REPO_ROOT / "counterfactual-benchmark" / "counterfactual_benchmark" / "methods" / "deepscm" / "checkpoints" / "adni" / "trained_uncond_vae" / "image_vae-epoch=25.ckpt"
+            model.load_state_dict(torch.load(str(adni_ckpt), map_location=torch.device('cuda'))["state_dict"])
         return model
     elif embedding == "lpips":
         return LPIPS(net_type='alex', normalize=True).to('cuda')

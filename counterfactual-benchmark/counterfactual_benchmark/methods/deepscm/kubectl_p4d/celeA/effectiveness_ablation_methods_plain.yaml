@@ -64,7 +64,7 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               accelerate launch evaluate_SD_DSCM.py --dataset "celeA_complex" \
                 --metrics "minimality" \
                 --embeddings "vae" \
@@ -72,8 +72,8 @@ spec:
                 --guidance_scale 5.0 \
                 --num_steps 100 \
                 --NTI "False" \
-                --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-05-20T14-44-34-controlnet_nomcplgeneration_image/controlnet-steps-100000.safetensors" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-05-20T14-44-34-controlnet_nomcplgeneration_image/learned_embeds-steps-100000.safetensors"
+                --causalnet_path "/logs/logs_celeA_complex_all/2025-05-20T14-44-34-controlnet_nomcplgeneration_image/controlnet-steps-100000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-05-20T14-44-34-controlnet_nomcplgeneration_image/learned_embeds-steps-100000.safetensors"
 
           resources:
             requests:

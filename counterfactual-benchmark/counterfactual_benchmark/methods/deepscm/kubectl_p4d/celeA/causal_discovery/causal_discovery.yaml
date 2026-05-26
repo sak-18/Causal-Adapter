@@ -64,12 +64,12 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser
+              cd 
               accelerate launch causal_discovery.py  --output_name "DAG3_warmup5000_lr1e04" \
                 --output_dir "./logs_mtx/logs_celeA_complex_all" \
-                --pretrained_model_name_or_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
+                --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
                 --dataset 'celeA_complex' \
-                --train_data_dir "/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/datasets/" \
+                --train_data_dir "/datasets/" \
                 --learnable_property "object" \
                 --resolution 256 \
                 --mixed_precision "no" \
@@ -87,7 +87,7 @@ spec:
                 --presudo_words 'human,face,with,different,attributes' \
                 --concept_words "human,face" \
                 --mcpl_training "False" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_all/2025-02-26T11-03-01-mcpl-all/learned_embeds-steps-6000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_all/2025-02-26T11-03-01-mcpl-all/learned_embeds-steps-6000.safetensors" \
                 
           resources:
             requests:

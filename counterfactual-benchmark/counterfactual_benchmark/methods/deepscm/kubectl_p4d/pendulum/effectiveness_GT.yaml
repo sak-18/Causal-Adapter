@@ -64,7 +64,7 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               accelerate launch evaluate_SD_PEND_GT.py --dataset "pendulum" \
                 --metrics "effectiveness" \
                 --embeddings "lpips" \
@@ -73,8 +73,8 @@ spec:
                 --num_steps 50 \
                 --NTI "False" \
                 --caus_mechanims 0 \
-                --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_pendulum_all/2025-06-02T11-43-33-controlnet_textcond_contrast_gaussianfloatgeneration_text_global_after/controlnet-steps-20000.safetensors" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_pendulum_all/2025-06-02T11-43-33-controlnet_textcond_contrast_gaussianfloatgeneration_text_global_after/learned_embeds-steps-20000.safetensors"
+                --causalnet_path "/logs/logs_pendulum_all/2025-06-02T11-43-33-controlnet_textcond_contrast_gaussianfloatgeneration_text_global_after/controlnet-steps-20000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_pendulum_all/2025-06-02T11-43-33-controlnet_textcond_contrast_gaussianfloatgeneration_text_global_after/learned_embeds-steps-20000.safetensors"
 
           resources:
             requests:

@@ -65,7 +65,7 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               accelerate launch evaluate_SD_DSCM_SD3_celebahq_reverse.py --dataset "celebahq_simple" \
                 --metrics "effectiveness" \
                 --embeddings "lpips" \

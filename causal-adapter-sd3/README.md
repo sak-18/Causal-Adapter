@@ -1,4 +1,4 @@
-# Causal-Adapter (SD3 / Flux)
+# Causal-Adapter (SD3 / Flux) 🚀
 
 This repository contains the Stable Diffusion 3 / Flux implementation used in
 the Causal-Adapter project.
@@ -6,7 +6,7 @@ the Causal-Adapter project.
 Note: internal symbols and scripts may still contain legacy `MCPL` names for
 backward compatibility.
 
-## Installation
+## Installation 🔧
 
 Create your Python/Conda environment, then install the local modified
 `diffusers` package in editable mode:
@@ -15,7 +15,7 @@ Create your Python/Conda environment, then install the local modified
 pip install -e diffusers
 ```
 
-## Pretrained Weights
+## Pretrained Weights 🔥
 
 Examples:
 
@@ -27,7 +27,7 @@ Project weights/checkpoints are published separately on Hugging Face:
 
 Do not commit model weights/checkpoints to git.
 
-## Quick Start
+## Quick Start ⚡
 
 Set environment variables first:
 
@@ -37,7 +37,7 @@ export DATA_ROOT=/path/to/counterfactual-benchmark/datasets
 export MODEL_ID=stabilityai/stable-diffusion-3-medium-diffusers
 ```
 
-### Train SD3 (example)
+### Train SD3 (example) 🧪
 
 ```bash
 accelerate launch train_causalnet_SD3.py \
@@ -61,7 +61,7 @@ accelerate launch train_causalnet_SD3.py \
   --use_8bit_adam
 ```
 
-## Notes
+## Notes 📝
 
 - Keep this implementation separate from SD1.5 (`MCPL-diffuser`) to preserve
   reproducibility.

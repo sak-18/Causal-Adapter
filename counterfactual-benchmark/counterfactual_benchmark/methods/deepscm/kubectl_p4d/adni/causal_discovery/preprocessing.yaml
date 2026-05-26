@@ -61,14 +61,14 @@ spec:
               export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
               export MKL_NUM_THREADS=1
               export OMP_NUM_THREADS=1
-              export FSLDIR=/home/jovyan/fcvm-data-volume/kzzr229/workspace/fsl
+              export FSLDIR=/fsl
               export PATH=$FSLDIR/bin:$PATH
               source $FSLDIR/etc/fslconf/fsl.sh
-              sudo ln -s /home/jovyan/fcvm-data-volume/kzzr229/workspace/fsl /usr/local/fsl
+              sudo ln -s /fsl /usr/local/fsl
               source ~/.bashrc
               source activate adni
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/ctf_datasets/adni/preprocessing
+              cd /counterfactual_benchmark/ctf_datasets/adni/preprocessing
               python3 main.py
           resources:
             requests:

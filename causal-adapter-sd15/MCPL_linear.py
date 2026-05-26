@@ -717,7 +717,7 @@ class TextualInversionDataset(Dataset):
             )
             #print(self.imglabel)
         elif 'celeA' in dataset:
-            data_dir = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/datasets/"
+            data_dir = str(Path(__file__).resolve().parents[1] / "counterfactual-benchmark" / "datasets")
             self.data = CelebA(root=data_dir, split='train', transform=None, download=False)
             self.num_images = len(self.data)
             self._length = self.num_images

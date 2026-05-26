@@ -64,12 +64,12 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser
+              cd 
               accelerate launch causal_discovery.py  --output_name "DAG5_lr5e04_mixnorm_warmup3000_recons" \
                 --output_dir "./logs_mtx/logs_adni_all" \
-                --pretrained_model_name_or_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
+                --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
                 --dataset 'ADNI' \
-                --train_data_dir "/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/datasets/adni/preprocessing/" \
+                --train_data_dir "/counterfactual_benchmark/datasets/adni/preprocessing/" \
                 --learnable_property "object" \
                 --resolution 256 \
                 --mixed_precision "no" \
@@ -87,7 +87,7 @@ spec:
                 --presudo_words 'a,brain,mri,image,affected,by,alzheimer,disease,and,captured,in,axial,view' \
                 --concept_words "mri,alzheimer" \
                 --mcpl_training "False" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_adni_all/2025-03-06T00-29-46-mcpl-all/learned_embeds-steps-6000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_adni_all/2025-03-06T00-29-46-mcpl-all/learned_embeds-steps-6000.safetensors" \
                 
           resources:
             requests:

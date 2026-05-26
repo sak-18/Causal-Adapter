@@ -1,9 +1,9 @@
-# Causal-Adapter
+# Causal-Adapter 🚀
 
 Official implementation of ICML 2026 paper:
 "Causal-Adapter: Taming Text-to-Image Diffusion for Faithful Counterfactual Generation."
 
-## Repository Structure
+## Repository Structure 🔧
 
 This repository is organized as a monorepo with three major components:
 
@@ -11,7 +11,7 @@ This repository is organized as a monorepo with three major components:
 - `causal-adapter-sd3/`: Stable Diffusion 3 / Flux implementation.
 - `counterfactual-benchmark/`: Benchmark and evaluation pipeline.
 
-## Quick Start
+## Quick Start ⚡
 
 1. Choose one component folder above.
 2. Follow the folder-level README for environment setup and commands.
@@ -21,7 +21,7 @@ This repository is organized as a monorepo with three major components:
 pip install -e diffusers
 ```
 
-## Pretrained Weights
+## Pretrained Weights 🔥
 
 Project checkpoints are published on Hugging Face:
 
@@ -29,11 +29,11 @@ Project checkpoints are published on Hugging Face:
 
 Do not commit large model artifacts/checkpoints to git.
 
-## Reproducibility Notes
+## Reproducibility Notes ✅
 
 - SD1.5 and SD3 implementations are kept separate by design.
 - Keep separate environments for SD1.5 and SD3 for reproducibility.
 
-## Citation
+## Citation 📚
 
 See `CITATION.cff` for citation metadata.

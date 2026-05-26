@@ -7,6 +7,10 @@ import torch.nn.functional as F
 import numpy as np
 from PIL import Image
 import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+PENDULUM_ROOT = REPO_ROOT / "causal-adapter-sd15" / "dataset" / "causal_data2" / "pendulum"
 sys.path.append("../../")
 from ctf_datasets.morphomnist.io import load_idx
 
@@ -52,9 +56,9 @@ class PendulumLike(Dataset):
         self.root_dir = data_dir
         self.train = True if split == 'train' else False
         if self.train:
-            self.root_dir = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data2/pendulum/train/'
+            self.root_dir = str(PENDULUM_ROOT / "train")
         else:
-            self.root_dir =  '/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data2/pendulum/test/'
+            self.root_dir = str(PENDULUM_ROOT / "test")
         self.transform = transform
 
         # digit is loaded from labels

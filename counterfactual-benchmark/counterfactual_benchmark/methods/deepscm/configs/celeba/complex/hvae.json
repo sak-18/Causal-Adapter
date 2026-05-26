@@ -81,7 +81,7 @@
                 "ckpt_cls_path" : "./checkpoints/celeba/complex/trained_classifiers/",
                 "evaluate_cf_model": "True",
                 "elbo_constraint": 2.26,
-                "checkpoint_path": "/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/checkpoints/celeba/complex/trained_scm/image_hvae-epoch=08.ckpt"
+                "checkpoint_path": "/counterfactual_benchmark/methods/deepscm/checkpoints/celeba/complex/trained_scm/image_hvae-epoch=08.ckpt"
             }
         }
     },

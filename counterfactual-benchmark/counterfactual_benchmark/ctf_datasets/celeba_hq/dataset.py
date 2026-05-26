@@ -1,6 +1,10 @@
 from torch.utils.data import Dataset
 import sys
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+DEFAULT_DATA_DIR = str(REPO_ROOT / "counterfactual-benchmark" / "datasets")
+sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
 from edit_modules.load_celebahq import CelebAHQ
 from torchvision.transforms import Resize, ToTensor, CenterCrop, Compose, ConvertImageDtype
 from torch.utils.data import ConcatDataset
@@ -33,7 +37,7 @@ def unnormalize(value, name):
 
 class Celebahq(Dataset):
     def __init__(self, attribute_size, split='train', normalize_=True,
-                 transform=None, transform_cls=None, data_dir='/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/datasets/'):
+                 transform=None, transform_cls=None, data_dir=DEFAULT_DATA_DIR):
         super().__init__()
         self.has_valid_set = True
         self.transform = transform

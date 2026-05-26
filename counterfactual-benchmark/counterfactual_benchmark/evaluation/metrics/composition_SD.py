@@ -1,8 +1,11 @@
 import numpy as np
 from torchvision import transforms as tfms
 import sys
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
-sys.path.append("/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/evaluation")
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
+sys.path.append(str(REPO_ROOT / "counterfactual-benchmark" / "counterfactual_benchmark" / "evaluation"))
 from causal_modules import ddim_modules
 import torch
 from embeddings.embeddings import get_embedding_model, get_embedding_fn

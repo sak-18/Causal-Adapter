@@ -1,6 +1,6 @@
 import argparse, os
 import sys
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
+sys.path.append('${PROJECT_ROOT}')
 from diffusers import StableDiffusionCausalControlNetPipeline, Causal_ControlNetModel, UniPCMultistepScheduler,StableDiffusionPipeline
 from diffusers.utils import load_image
 import torch
@@ -81,7 +81,7 @@ def get_parser(**parser_kwargs):
         "--ckpt_path",
         type=str,
         const=True,
-        default='/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--sd-legacy--stable-diffusion-v1-5/snapshots/f03de327dd89b501a01da37fc5240cf4fdba85a1',
+        default='${PROJECT_ROOT}/.cache/huggingface/hub/models--sd-legacy--stable-diffusion-v1-5/snapshots/f03de327dd89b501a01da37fc5240cf4fdba85a1',
         nargs="?",
         help="pretrained model path",
     )
@@ -150,7 +150,7 @@ def get_parser(**parser_kwargs):
     )
     parser.add_argument("--input_image",
         type=str,
-        default='/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_4_concepts/pendulum/3/a_-35_71_3_4.png',
+        default='${PROJECT_ROOT}/dataset/causal_4_concepts/pendulum/3/a_-35_71_3_4.png',
         help="image path",
     )
     parser.add_argument("--img_size",

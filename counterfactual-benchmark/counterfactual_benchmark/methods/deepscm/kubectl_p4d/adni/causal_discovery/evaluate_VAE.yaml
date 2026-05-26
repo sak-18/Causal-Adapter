@@ -66,7 +66,7 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               python evaluate.py -c configs/adni/vae.json -clf configs/adni/classifier.json -m "minimality" --embeddings "vae"
           resources:
             requests:

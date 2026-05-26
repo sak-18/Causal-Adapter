@@ -1,8 +1,11 @@
 import numpy as np
 from torchvision import transforms as tfms
 import sys
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux')
-sys.path.append("/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/evaluation")
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.append(str(REPO_ROOT / "causal-adapter-sd3"))
+sys.path.append(str(REPO_ROOT / "counterfactual-benchmark" / "counterfactual_benchmark" / "evaluation"))
 from causal_modules import ddim_modules_sd3 as ddim_modules
 from causal_modules.ddim_modules_sd3 import Flow_editing
 import torch

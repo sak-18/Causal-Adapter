@@ -8,14 +8,19 @@ from tqdm import tqdm
 import torch.nn as nn
 from torch.utils.data import Dataset
 import os
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+DEEPSCM_CONFIG_DIR = REPO_ROOT / "counterfactual-benchmark" / "counterfactual_benchmark" / "methods" / "deepscm" / "configs"
+SD3_ROOT = REPO_ROOT / "causal-adapter-sd3"
 os.environ["NCCL_IGNORE_DISABLED_P2P"] = "1"
-os.environ["TORCH_HOME"] = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/.cache/torch"
+os.environ.setdefault("TORCH_HOME", str(REPO_ROOT / "counterfactual-benchmark" / ".cache" / "torch"))
 import numpy as np
 import argparse
 import random
 import sys
 sys.path.append("../../")
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux')
+sys.path.append(str(REPO_ROOT / "causal-adapter-sd3"))
 
 from causal_modules import ddim_modules_sd3 as ddim_modules
 from causal_modules.ddim_modules_sd3 import Flow_editing
@@ -620,21 +625,21 @@ def datasets_configs(dataset):
         if 'simple' in dataset:
             pass
         elif 'complex' in dataset:
-            config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/celeba/complex/vae.json'
-            classifier_config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/celeba/complex/classifier.json'
+            config = str(DEEPSCM_CONFIG_DIR / "celeba" / "complex" / "vae.json")
+            classifier_config = str(DEEPSCM_CONFIG_DIR / "celeba" / "complex" / "classifier.json")
     if 'celebahq' in dataset:
         if 'simple' in dataset:
-            config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/celebahq/simple/vae_anti.json'
-            classifier_config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/celebahq/simple/classifier_anti.json'
+            config = str(DEEPSCM_CONFIG_DIR / "celebahq" / "simple" / "vae_anti.json")
+            classifier_config = str(DEEPSCM_CONFIG_DIR / "celebahq" / "simple" / "classifier_anti.json")
         elif 'complex' in dataset:
             pass 
     
     elif 'ADNI' in dataset:
-        config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/adni/vae.json'
-        classifier_config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/adni/classifier.json'
+        config = str(DEEPSCM_CONFIG_DIR / "adni" / "vae.json")
+        classifier_config = str(DEEPSCM_CONFIG_DIR / "adni" / "classifier.json")
     elif 'pendulum' in dataset:
-        config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/pendulum/vae.json'
-        classifier_config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/pendulum/classifier.json'
+        config = str(DEEPSCM_CONFIG_DIR / "pendulum" / "vae.json")
+        classifier_config = str(DEEPSCM_CONFIG_DIR / "pendulum" / "classifier.json")
 
     return config,classifier_config
 
@@ -688,15 +693,15 @@ if __name__ == "__main__":
     # torch.manual_seed(42)
     load_dtype = torch.float16
     print(args)
-    base_model_path ="/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux/.cache/huggingface/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/5fe80140eec27f0a4e1d02ea2b0b31d71ac38f75"
+    base_model_path = os.environ.get("CAUSAL_ADAPTER_SD3_BASE_MODEL", "stabilityai/stable-diffusion-3-medium-diffusers")
     model_dir_name = "2025-10-28T20-32-57-controlnet_textcond_constrastive_7attrsgeneration_text_global_after"
     #model_dir_name = "2025-10-28T20-32-57-controlnet_textcond_constrastive_7attrsgeneration_text_global_after"
     train_steps = 200000
     # currently not train the T5 embeddings
-    controlnet_path = f"/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux/logs/logs_celebahq_simple_all/{model_dir_name}/controlnet-steps-{train_steps}.safetensors"
-    embedding_1_path = f"/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux/logs/logs_celebahq_simple_all/{model_dir_name}/learned_embeds_clip1_{train_steps}.safetensors"
-    embedding_2_path = f"/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux/logs/logs_celebahq_simple_all/{model_dir_name}/learned_embeds_clip2_{train_steps}.safetensors"
-    embedding_3_path = f"/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux/logs/logs_celebahq_simple_all/{model_dir_name}/learned_embeds_t5_{train_steps}.safetensors"
+    controlnet_path = str(SD3_ROOT / "logs" / "logs_celebahq_simple_all" / model_dir_name / f"controlnet-steps-{train_steps}.safetensors")
+    embedding_1_path = str(SD3_ROOT / "logs" / "logs_celebahq_simple_all" / model_dir_name / f"learned_embeds_clip1_{train_steps}.safetensors")
+    embedding_2_path = str(SD3_ROOT / "logs" / "logs_celebahq_simple_all" / model_dir_name / f"learned_embeds_clip2_{train_steps}.safetensors")
+    embedding_3_path = str(SD3_ROOT / "logs" / "logs_celebahq_simple_all" / model_dir_name / f"learned_embeds_t5_{train_steps}.safetensors")
 
     args.causalnet_path = controlnet_path
     device = torch.device("cuda")

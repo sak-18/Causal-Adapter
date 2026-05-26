@@ -62,12 +62,12 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser
+              cd 
               accelerate launch MCPL_linear.py --output_name "mcpl-all" \
                 --dataset 'chexpert' \
                 --output_dir "./logs/logs_chexpert_data100/" \
-                --pretrained_model_name_or_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
-                --train_data_dir "/home/jovyan/fcvm-data-volume/kzzr229/workspace/causal_datasets/cheXpert/sampling_100" \
+                --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
+                --train_data_dir "/causal_datasets/cheXpert/sampling_100" \
                 --learnable_property "object" \
                 --resolution 256 \
                 --train_batch_size 4 \

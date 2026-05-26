@@ -12,7 +12,7 @@ import os
 from PIL import Image
 from tqdm import tqdm
 import sys
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
+sys.path.append('${PROJECT_ROOT}')
 from causal_modules import ddim_modules
 LOW_RESOURCE = False
 img_size = 256

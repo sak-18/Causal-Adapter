@@ -1,6 +1,8 @@
 import sys
+from pathlib import Path
 # edit here
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
+REPO_ROOT = Path(__file__).resolve().parents[5]
+sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
 import diffusers
 from diffusers import StableDiffusionCausalControlNetPipeline, Causal_ControlNetModel, UniPCMultistepScheduler,StableDiffusionPipeline
 import importlib

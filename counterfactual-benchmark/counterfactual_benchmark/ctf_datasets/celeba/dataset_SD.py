@@ -3,6 +3,9 @@ from torchvision.datasets import CelebA
 from torchvision.transforms import Resize, ToTensor, CenterCrop, Compose, ConvertImageDtype
 from torchvision import transforms
 import torch
+from pathlib import Path
+
+DEFAULT_DATA_DIR = str(Path(__file__).resolve().parents[3] / "datasets")
 
 MIN_MAX = {
     'image': [0.0, 255.0]
@@ -31,7 +34,7 @@ def unnormalize(value, name,dtype=torch.uint8):
 
 class Celeba(Dataset):
     def __init__(self, attribute_size, split='train', normalize_=True,
-                 transform=None, transform_cls=None, data_dir='/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/datasets/'):
+                 transform=None, transform_cls=None, data_dir=DEFAULT_DATA_DIR):
         super().__init__()
         self.has_valid_set = True
         self.transform = transform

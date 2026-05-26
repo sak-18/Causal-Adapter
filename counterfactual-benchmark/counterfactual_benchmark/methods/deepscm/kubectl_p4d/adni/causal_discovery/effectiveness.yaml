@@ -65,7 +65,7 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               accelerate launch evaluate_SD_DSCM.py --dataset "ADNI" \
                 --metrics "effectiveness" \
                 --embeddings "lpips" \
@@ -73,8 +73,8 @@ spec:
                 --guidance_scale 1.0 \
                 --num_steps 100 \
                 --NTI "False" \
-                --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_ADNI_all/2025-10-07T16-43-18-controlnet_textcond_nocontrastgeneration_image/controlnet-steps-100000.safetensors" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_ADNI_all/2025-10-07T16-43-18-controlnet_textcond_nocontrastgeneration_image/learned_embeds-steps-100000.safetensors"
+                --causalnet_path "/logs/logs_ADNI_all/2025-10-07T16-43-18-controlnet_textcond_nocontrastgeneration_image/controlnet-steps-100000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_ADNI_all/2025-10-07T16-43-18-controlnet_textcond_nocontrastgeneration_image/learned_embeds-steps-100000.safetensors"
 
           resources:
             requests:

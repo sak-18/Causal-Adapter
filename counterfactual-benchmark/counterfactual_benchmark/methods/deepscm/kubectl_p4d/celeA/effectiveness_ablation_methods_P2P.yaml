@@ -64,7 +64,7 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               accelerate launch evaluate_SD_DSCM_P2P.py --dataset "celeA_complex" \
                 --metrics "effectiveness" \
                 --embeddings "lpips" \
@@ -72,8 +72,8 @@ spec:
                 --guidance_scale 3.0 \
                 --num_steps 50 \
                 --NTI "True" \
-                --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-08-15T11-47-12-controlnet_resume_flipgeneration_text_global_after/controlnet-steps-300000.safetensors" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-08-15T11-47-12-controlnet_resume_flipgeneration_text_global_after/learned_embeds-steps-300000.safetensors"
+                --causalnet_path "/logs/logs_celeA_complex_all/2025-08-15T11-47-12-controlnet_resume_flipgeneration_text_global_after/controlnet-steps-300000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-08-15T11-47-12-controlnet_resume_flipgeneration_text_global_after/learned_embeds-steps-300000.safetensors"
 
           resources:
             requests:

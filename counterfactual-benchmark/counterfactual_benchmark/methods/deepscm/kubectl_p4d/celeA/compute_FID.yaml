@@ -66,14 +66,14 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               accelerate launch compute_FID.py --dataset "celeA_complex" \
                 --metrics "minimality" \
                 --bs 100 \
                 --embeddings "vae" \
                 --file_saved_path "./saved_ablation/celeA_complex/DSCM_effectiveness_step500.0_scale3.0_NTIFalse_2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/FID" \
-                --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/controlnet-steps-100000.safetensors" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/learned_embeds-steps-100000.safetensors"
+                --causalnet_path "/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/controlnet-steps-100000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/learned_embeds-steps-100000.safetensors"
 
           resources:
             requests:

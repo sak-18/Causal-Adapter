@@ -212,10 +212,13 @@ def log_validation(controlnet, text_encoder, tokenizer, unet, vae, args, acceler
     pipeline = pipeline.to(accelerator.device)
     pipeline.set_progress_bar_config(disable=True)
     
-    def random_image_path(dataset_path='/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data/pendulum/test'):
+    def random_image_path(dataset_path=None):
+        if dataset_path is None:
+            dataset_path = str(Path(__file__).resolve().parent / "dataset" / "causal_data" / "pendulum" / "test")
         # List all file paths in the dataset directory
         if args.dataset == 'chexpert':
-            image_paths = ['/home/jovyan/fcvm-data-volume/kzzr229/workspace/causal_datasets/cheXpert/sampling_100/patient06994/study15/view1_frontal.jpg']
+            sample_image = os.environ.get("CHEXPERT_SAMPLE_IMAGE")
+            image_paths = [sample_image] if sample_image else [os.path.join(dataset_path, file_path) for file_path in os.listdir(dataset_path)]
         else:
             image_paths = [os.path.join(dataset_path, file_path) for file_path in os.listdir(dataset_path)]
         # Randomly choose one image path
@@ -223,7 +226,7 @@ def log_validation(controlnet, text_encoder, tokenizer, unet, vae, args, acceler
         print('random picked ', random_path)
         return random_path
     img_path = random_image_path(args.train_data_dir)
-    #img_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data/pendulum/test/a_9_69_6_7.png"
+    #img_path = "<dataset_path>/a_9_69_6_7.png"
     #control_image = load_image(img_path)
     noise_array = np.random.randint(0, 256, (16, 16, 3), dtype=np.uint8)
     control_image = Image.fromarray(noise_array, mode='RGB')

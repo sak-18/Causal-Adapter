@@ -1,4 +1,4 @@
-# Causal-Adapter (SD1.5)
+# Causal-Adapter (SD1.5) 🚀
 
 This repository contains the Stable Diffusion v1.5 implementation used in the
 Causal-Adapter project.
@@ -6,7 +6,7 @@ Causal-Adapter project.
 Note: internal symbols and scripts may still contain legacy `MCPL` names for
 backward compatibility.
 
-## Installation
+## Installation 🔧
 
 Create your Python/Conda environment, then install the local modified
 `diffusers` package in editable mode:
@@ -15,7 +15,7 @@ Create your Python/Conda environment, then install the local modified
 pip install -e diffusers
 ```
 
-## Pretrained Weights
+## Pretrained Weights 🔥
 
 Recommended model IDs:
 
@@ -30,7 +30,7 @@ Project weights/checkpoints are published separately on Hugging Face:
 
 Do not commit model weights/checkpoints to git.
 
-## Quick Start
+## Quick Start ⚡
 
 Set these environment variables first:
 
@@ -40,7 +40,7 @@ export DATA_ROOT=/path/to/dataset
 export MODEL_ID=stable-diffusion-v1-5/stable-diffusion-v1-5
 ```
 
-### Train (example)
+### Train (example) 🧪
 
 ```bash
 accelerate launch MCPL.py \
@@ -59,13 +59,13 @@ accelerate launch MCPL.py \
   --lr_warmup_steps 0
 ```
 
-### Inference (example)
+### Inference (example) 🎯
 
 ```bash
 python scripts/txt2img_inference.py
 ```
 
-### Attention Maps (example)
+### Attention Maps (example) 🧠
 
 ```bash
 python scripts/show_attn_maps/plt_attn_maps.py \
@@ -76,7 +76,7 @@ python scripts/show_attn_maps/plt_attn_maps.py \
   --img_size 512
 ```
 
-## Notes
+## Notes 📝
 
 - If you previously installed a conflicting package version, uninstall/reinstall
   your local editable `diffusers` package.

@@ -1,6 +1,8 @@
 import sys
 # edit here
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser-flux')
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 import diffusers
 import importlib
 importlib.reload(diffusers)

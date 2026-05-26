@@ -13,8 +13,13 @@ import numpy as np
 import argparse
 import random
 import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+DEEPSCM_CONFIG_DIR = REPO_ROOT / "counterfactual-benchmark" / "counterfactual_benchmark" / "methods" / "deepscm" / "configs"
+SD15_ROOT = REPO_ROOT / "causal-adapter-sd15"
 sys.path.append("../../")
-sys.path.append('/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser')
+sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
 
 from causal_modules import ddim_modules
 import pickle
@@ -125,11 +130,11 @@ def datasets_configs(dataset):
         if 'simple' in dataset:
             pass
         elif 'complex' in dataset:
-            config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/celeba/complex/vae.json'
-            classifier_config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/celeba/complex/classifier.json'
+            config = str(DEEPSCM_CONFIG_DIR / "celeba" / "complex" / "vae.json")
+            classifier_config = str(DEEPSCM_CONFIG_DIR / "celeba" / "complex" / "classifier.json")
     elif 'ADNI' in dataset:
-        config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/adni/vae.json'
-        classifier_config = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm/configs/adni/classifier.json'
+        config = str(DEEPSCM_CONFIG_DIR / "adni" / "vae.json")
+        classifier_config = str(DEEPSCM_CONFIG_DIR / "adni" / "classifier.json")
 
     return config,classifier_config
 
@@ -170,13 +175,13 @@ if __name__ == "__main__":
     # torch.manual_seed(42)
 
     print(args)
-    base_model_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce"
+    base_model_path = os.environ.get("CAUSAL_ADAPTER_SD15_BASE_MODEL", "lambdalabs/miniSD-diffusers")
     controlnet_path = args.causalnet_path
     mcpl_embedding_path = args.mcpl_embedding_path
     accelerator = Accelerator()
     controlnet = Causal_ControlNetModel.from_pretrained(controlnet_path,torch_dtype=torch.float32)
     if args.dataset in ['celeA_complex']:
-        cond_path = '/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-23T21-11-19-causalnet_pretrain/best_model.pt'
+        cond_path = str(SD15_ROOT / "logs" / "logs_celeA_complex_all" / "2025-04-23T21-11-19-causalnet_pretrain" / "best_model.pt")
         A_matrix = torch.tensor([[0, 0, 1,1], [0, 0, 1,1], [0, 0, 0,0], [0, 0, 0,0]],dtype=torch.float32).to(device)
         prompt = 'a human of @ and * and & and !'
         presudo_words= '@,*,&,!'

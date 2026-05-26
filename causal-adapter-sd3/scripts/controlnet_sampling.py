@@ -72,12 +72,12 @@ pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
 '''from test set'''
-#img_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data/pendulum/test/a_9_69_6_7.png"
-#img_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data/pendulum/test/a_-26_147_11_14.png"
+#img_path = "<dataset_path>/a_9_69_6_7.png"
+#img_path = "<dataset_path>/a_-26_147_11_14.png"
 #c2 = load_image(img_path)
 '''from training set'''
 img_path = _require_env("CONTROL_IMAGE_PATH")
-#img_path = "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/dataset/causal_data/pendulum/test/a_-3_126_4_12.png"
+#img_path = "<dataset_path>/a_-3_126_4_12.png"
 #img_path = random_image_path()
 control_image = load_image(img_path)
 prompt = "orange @ and red * and black & and black !"

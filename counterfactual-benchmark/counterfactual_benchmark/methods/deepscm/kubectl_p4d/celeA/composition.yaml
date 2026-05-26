@@ -64,15 +64,15 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/counterfactual-benchmark/counterfactual_benchmark/methods/deepscm
+              cd /counterfactual_benchmark/methods/deepscm
               accelerate launch evaluate_SD_DSCM.py --dataset "celeA_complex" \
                 --metrics "composition" \
                 --cycles "1" "10" \
                 --embeddings "lpips" \
                 --num_steps 500 \
                 --bs 80 \
-                --causalnet_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-200000.safetensors" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-200000.safetensors"
+                --causalnet_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-200000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-200000.safetensors"
 
           resources:
             requests:

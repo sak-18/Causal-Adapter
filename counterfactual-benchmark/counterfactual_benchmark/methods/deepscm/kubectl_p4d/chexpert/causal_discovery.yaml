@@ -64,12 +64,12 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd /home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser
+              cd 
               accelerate launch causal_discovery.py  --output_name "cd_only_attr_accu120_BN" \
                 --output_dir "./logs_mtx/logs_chexpert_data100" \
-                --pretrained_model_name_or_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
+                --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
                 --dataset 'chexpert' \
-                --train_data_dir "/home/jovyan/fcvm-data-volume/kzzr229/workspace/causal_datasets/cheXpert/sampling_100" \
+                --train_data_dir "/causal_datasets/cheXpert/sampling_100" \
                 --learnable_property "object" \
                 --resolution 256 \
                 --mixed_precision "no" \
@@ -86,7 +86,7 @@ spec:
                 --presudo_words 'a,detailed,chest,x,ray,image,of,age,year,old,gender,patient,diagnosed,with,specific,disease' \
                 --concept_words "gender,age,disease" \
                 --mcpl_training "False" \
-                --mcpl_embedding_path "/home/jovyan/fcvm-data-volume/kzzr229/workspace/MCPL-diffuser/logs/logs_chexpert_data100/2024-12-05T11-32-41-mcpl-all/learned_embeds-steps-6000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_chexpert_data100/2024-12-05T11-32-41-mcpl-all/learned_embeds-steps-6000.safetensors" \
                 
           resources:
             requests:
