@@ -58,7 +58,7 @@ def resolve_causalnet_class():
     so the script does not depend on ``causal_modules`` being a regular
     importable package on ``sys.path`` at call time.
     """
-    local_pretraining = REPO_ROOT / "causal_modules" / "pretraining.py"
+    local_pretraining = REPO_ROOT / "causal_modules" / "scm_pretraining.py"
     return load_attr_from_file(
         local_pretraining, "CausalNet", module_name="local_pretraining_causalnet"
     )

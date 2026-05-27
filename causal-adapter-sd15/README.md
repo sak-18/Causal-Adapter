@@ -17,12 +17,10 @@ pip install -e diffusers
 
 ## Pretrained Weights 🔥
 
-Recommended model IDs:
+Has tested model IDs:
 
-- `stable-diffusion-v1-5/stable-diffusion-v1-5`
-- `stabilityai/stable-diffusion-2`
-- `lambdalabs/miniSD-diffusers`
-- `Nihirc/Prompt2MedImage` (medical domain)
+- `lambdalabs/miniSD-diffusers` 
+
 
 Project weights/checkpoints are published separately on Hugging Face:
 

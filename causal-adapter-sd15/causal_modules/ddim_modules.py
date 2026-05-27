@@ -4,7 +4,6 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 import diffusers
-from diffusers import StableDiffusionCausalControlNetPipeline, Causal_ControlNetModel, UniPCMultistepScheduler,StableDiffusionPipeline
 import importlib
 importlib.reload(diffusers)
 from diffusers.utils import load_image
@@ -19,14 +18,13 @@ from PIL import Image
 from torch.optim.adam import Adam
 from typing import Optional, Union, Tuple, List, Callable, Dict
 from torchvision import transforms
-from edit_modules.clip import CLIPTextModel
-from edit_modules.embed_manager import Embed_control_manager
+from transformers import CLIPTextModel
 from diffusers.models.modeling_utils import load_state_dict
 import torch.nn.functional as nnf
 import abc
 import torch.nn as nn
 from copy import deepcopy
-from scripts.show_attn_maps import ptp_tools,ptp_utils
+from causal_modules.p2p_edits import ptp_utils
 from causal_modules.p2p_edits.scheduler_dev import DDIMSchedulerDev
 from causal_modules.p2p_edits.inversion import DirectInversion
 from causal_modules.p2p_edits.attention_control import EmptyControl, AttentionStore, make_controller
@@ -598,36 +596,6 @@ def invert(
         )
         
         
-        # (down_block_res_samples, mid_block_res_sample),causal_loss,control_embeddings,_ = pipe.controlnet(
-        #             latent_model_input,
-        #             t,
-        #             encoder_hidden_states=input_ids.clone(),
-        #             controlnet_cond=controlnet_image,
-        #             return_dict=False,
-        #             label = label,
-        #             training = False,
-        #             sampling=False,
-        #             intervention_indx=intervention_indx,
-        #             intervention_values=intervention_values,
-        #             text_encoder = pipe.text_encoder,
-        #             do_classifier_free_guidance = do_classifier_free_guidance,
-        #             negtive_prompt_embedding = negtive_prompt_embedding
-                    
-        # )
-        # # Predict the noise residual
-        # '''think should I use the control residual here?'''
-        # if 'global' in task_cond:
-        #     encoder_hidden_states = control_embeddings
-        # # else is use the local embedding for unet
-        # else:
-        #     encoder_hidden_states = pipe.text_encoder(input_ids)[0].to(dtype=mid_block_res_sample.dtype)
-        #     if do_classifier_free_guidance:
-        #         if negtive_prompt_embedding is not None:
-        #             encoder_hidden_states = torch.cat([negtive_prompt_embedding, encoder_hidden_states])
-        #         else:
-        #             assert encoder_hidden_states is not None, 'negative_prompt_embedding should be provided when do_classifier_free_guidance is True'
-
-        
         
         # Predict the noise residual
         noise_pred = pipe.unet(latent_model_input, t, encoder_hidden_states=encoder_hidden_states,
@@ -643,19 +611,6 @@ def invert(
             noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
 
         
-        # alpha_prod_t = pipe.scheduler.alphas_cumprod[t]
-        # alpha_prod_t_prev = (
-        #     pipe.scheduler.alphas_cumprod[timesteps[i - 1]]
-        #     if i > 0 else pipe.scheduler.final_alpha_cumprod
-        # )
-
-        # mu = alpha_prod_t ** 0.5
-        # mu_prev = alpha_prod_t_prev ** 0.5
-        # sigma = (1 - alpha_prod_t) ** 0.5
-        # sigma_prev = (1 - alpha_prod_t_prev) ** 0.5
-
-        # pred_x0 = (latents - sigma_prev * noise_pred) / mu_prev
-        # latents = mu * pred_x0 + sigma * noise_pred
 
         timestep, next_timestep = min(t.item() - pipe.scheduler.config.num_train_timesteps // num_inference_steps, 999), t.item()
         alpha_prod_t = pipe.scheduler.alphas_cumprod[timestep] if timestep >= 0 else pipe.scheduler.final_alpha_cumprod
@@ -734,11 +689,6 @@ def load_mcpl_embeddings(base_model_path,tokenizer,embedding_path=None,presudo_t
             print(f"Loaded textual inversion embedding for {token_id}.")
 
 
-    embed_control=embed_control
-    if embed_control:
-        embed_control_manager =Embed_control_manager(presudo_token_ids)
-        text_encoder.text_model.embeddings.set_embed_control(embed_control_manager)
-        print('load embedding control')
 
     text_encoder.eval()
     return text_encoder

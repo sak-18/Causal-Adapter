@@ -22,13 +22,11 @@ import shutil
 import warnings
 from contextlib import nullcontext
 from pathlib import Path
-import pytorch_lightning.loggers
 import numpy as np
 import PIL
 import safetensors
 import torch
 import torch.nn.functional as F
-import torch.utils.checkpoint
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
@@ -36,25 +34,19 @@ from accelerate.utils import ProjectConfiguration, set_seed
 from huggingface_hub import create_repo, upload_folder
 import accelerate
 import itertools
-# TODO: remove and import from diffusers.utils when the new version of diffusers is released
 from packaging import version
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
-from edit_modules.TI_datasets_discovery import TextualInversionDataset,BalancedAttributeSampler
-from transformers import CLIPTokenizer
-from edit_modules.clip import CLIPTextModel
-from edit_modules.embed_manager import EmbeddingManager,Embed_control_manager
+from edit_modules.TI_datasets_discovery import TextualInversionDataset
+from transformers import CLIPTokenizer,CLIPTextModel
 import datetime
 import diffusers
 import pandas as pd
 from diffusers import (
     AutoencoderKL,
     DDPMScheduler,
-    DiffusionPipeline,
-    DPMSolverMultistepScheduler,
-    DDIMScheduler,
     StableDiffusionPipeline,
     UNet2DConditionModel,
     Causal_ControlNetModel,
@@ -67,10 +59,8 @@ from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_
 from diffusers.utils.import_utils import is_xformers_available
 import matplotlib.pyplot as plt
 from diffusers.utils.torch_utils import is_compiled_module
-from diffusers.models.modeling_utils import load_state_dict
-from diffusers.utils import load_image
-from p2p import mcpl_utils
-from p2p.p2p_ldm_utils import LocalMask, AttentionMask
+from causal_modules.p2p_edits import mcpl_utils
+from causal_modules.p2p_edits.p2p_ldm_utils import LocalMask, AttentionMask
 import copy
 if is_wandb_available():
     import wandb
@@ -102,8 +92,6 @@ logger = get_logger(__name__)
 import numpy as np
 import matplotlib.pyplot as plt
 
-import numpy as np
-import matplotlib.pyplot as plt
 
 def save_images_grid(observed_img, images_list, grid_size, save_path):
     """
@@ -630,7 +618,7 @@ def parse_args():
     parser.add_argument("--task_cond", 
         type=str,
         default='generation_text_global',
-        help="'discovery_image','discovery_text_local','discovery_text_global','generation_image','generation_text_local','generation_text_global','generation_text_global_after','generation_text_local_after'")
+        help="'generation_image','generation_text_local','generation_text_global','generation_text_global_after','generation_text_local_after'")
     parser.add_argument("--random_prompt_template", 
         type=str2bool,
         default=False,
@@ -753,12 +741,6 @@ def main():
 
     
 
-    embed_control_manager_bool = True
-    # if 'after' in args.task_cond or 'image' in args.task_cond:
-    #     embed_control_manager_bool = False
-    if embed_control_manager_bool:
-        embed_control =Embed_control_manager(presudo_token_ids)
-        text_encoder.text_model.embeddings.set_embed_control(embed_control)
 
     if args.controlnet_model_name_or_path:
         logger.info("Loading existing controlnet weights")
