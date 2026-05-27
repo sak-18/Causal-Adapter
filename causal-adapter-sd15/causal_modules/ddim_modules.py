@@ -20,7 +20,7 @@ from torch.optim.adam import Adam
 from typing import Optional, Union, Tuple, List, Callable, Dict
 from torchvision import transforms
 from edit_modules.clip import CLIPTextModel
-from edit_modules.embed_manager import EmbeddingManager,Embed_control_manager
+from edit_modules.embed_manager import Embed_control_manager
 from diffusers.models.modeling_utils import load_state_dict
 import torch.nn.functional as nnf
 import abc
@@ -264,33 +264,6 @@ def sample(
                     intervention_values=intervention_values
 
         )
-        # (down_block_res_samples, mid_block_res_sample),causal_loss,control_embeddings,causal_cond = pipe.controlnet(
-        #             latent_model_input,
-        #             t,
-        #             encoder_hidden_states=input_ids.clone(),
-        #             controlnet_cond=controlnet_image,
-        #             return_dict=False,
-        #             label = label,
-        #             training=False,
-        #             sampling=True,
-        #             intervention_indx=intervention_indx,
-        #             intervention_values=intervention_values,
-        #             text_encoder = pipe.text_encoder,
-        #             do_classifier_free_guidance = do_classifier_free_guidance,
-        #             negtive_prompt_embedding = negtive_prompt_embedding,
-        #             disentangle= disentangle,
-        # )
-        # if 'global' in task_cond:
-        #     encoder_hidden_states = control_embeddings
-        # # else is use the local embedding for unet
-        # else:
-        #     encoder_hidden_states = pipe.text_encoder(input_ids)[0].to(dtype=mid_block_res_sample.dtype)
-        #     if do_classifier_free_guidance:
-        #         if negtive_prompt_embedding is not None:
-        #             encoder_hidden_states = torch.cat([negtive_prompt_embedding, encoder_hidden_states])
-        #         else:
-        #             assert encoder_hidden_states is not None, 'negative_prompt_embedding should be provided when do_classifier_free_guidance is True'
-
 
 
         # Predict the noise residual
@@ -760,17 +733,6 @@ def load_mcpl_embeddings(base_model_path,tokenizer,embedding_path=None,presudo_t
             text_encoder.get_input_embeddings().weight.data[token_id] = embedding
             print(f"Loaded textual inversion embedding for {token_id}.")
 
-
-        embed_proj_path  = embedding_path.replace("learned_embeds", "embeds_proj")
-            
-        if os.path.exists(embed_proj_path):
-            embedding_manager = EmbeddingManager(token_ids)
-            text_encoder.text_model.embeddings.set_embedding_manager(embedding_manager)
-            linear_state_dict = load_state_dict(embed_proj_path)
-            embedding_manager.embed_proj.load_state_dict(linear_state_dict)
-            embedding_manager.eval()
-            print('extend projection')
-    
 
     embed_control=embed_control
     if embed_control:
@@ -1710,34 +1672,6 @@ class PNP(nn.Module):
                     sampling=True,
 
              )
-            
-            # (down_block_res_samples, mid_block_res_sample),causal_loss,control_embeddings,causal_cond = self.pipe.controlnet(
-            #             latent_model_input,
-            #             t,
-            #             encoder_hidden_states=input_ids.clone(),
-            #             controlnet_cond=None,
-            #             return_dict=False,
-            #             label = label,
-            #             training=False,
-            #             sampling=True,
-            #             intervention_indx=intervention_indx,
-            #             intervention_values=intervention_values,
-            #             text_encoder = self.pipe.text_encoder,
-            #             do_classifier_free_guidance = do_classifier_free_guidance,
-            #             negtive_prompt_embedding = pnp_guidance_embeds,
-            #             disentangle= disentangle,
-            # )
-            # if 'global' in task_cond:
-            #     encoder_hidden_states = control_embeddings
-            # else is use the local embedding for unet
-            # else:
-            #     encoder_hidden_states = self.pipe.text_encoder(input_ids)[0].to(dtype=mid_block_res_sample.dtype)
-            #     if do_classifier_free_guidance:
-            #         if negtive_prompt_embedding is not None:
-            #             encoder_hidden_states = torch.cat([negtive_prompt_embedding, encoder_hidden_states],dim=0)
-            #         else:
-            #             assert encoder_hidden_states is not None, 'negative_prompt_embedding should be provided when do_classifier_free_guidance is True'
-
 
 
             # Predict the noise residual

@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT))
 import copy
 import itertools
 import time
@@ -11,13 +16,12 @@ from torch.utils.data import DataLoader, Dataset
 import torch
 import os
 
-from .utils import (
+from causal_modules.utils.scm_utils import (
     set_random_seed_all,
     train_val_split,
 )
-from .base._base_model import BaseModel
 import importlib
-from .control_heads import pendulum,celeA,ADNI,MorphoMNIST
+from causal_modules.control_heads import pendulum,celeA,ADNI,MorphoMNIST
 
 importlib.reload(pendulum)
 
@@ -132,7 +136,7 @@ def load_dataset_model(in_dim,dataset,task_cond='generation_text_global',hidden_
         return model
 
 
-class CausalNet(BaseModel):
+class CausalNet():
     """
    
 
@@ -150,7 +154,7 @@ class CausalNet(BaseModel):
         dataset_name= 'pendulum',
         logger_path = None
     ):
-        super().__init__()
+        
         self.model_variance_flavor = model_variance_flavor
         self.standard_scale = standard_scale
         self.use_gumbel = use_gumbel
@@ -236,67 +240,9 @@ class CausalNet(BaseModel):
         start = time.time()
 
         
-        # # Stage 1: Pre-selection
-        # self._ps_model = AutoEncoderLayers(
-        #     self.d,
-        #     [self._model_kwargs["dim_hidden"]] * self._model_kwargs["num_layers"],
-        #     nn.Sigmoid(),
-        #     model_variance_flavor=self.model_variance_flavor,
-        #     shared_layers=False,
-        #     adjacency_p=2.0,
-        #     dag_penalty_flavor="none",
-        #     use_gumbel=self.use_gumbel,
-        # )
-        # if device:
-        #     move_modules_to_device(self._ps_model, device)
-
-        # ps_optimizer = torch.optim.Adam(
-        #     self._ps_model.parameters(), lr=self._stage1_kwargs["learning_rate"]
-        # )
-
-        # ps_kwargs = {
-        #     **self._stage1_kwargs,
-        #     "threshold": self.threshold,
-        # }
+        
         train_kwargs = train_kwargs or {}
-        # self._ps_model, next_epoch = _train(
-        #     self._ps_model,
-        #     ps_dataloader,
-        #     ps_optimizer,
-        #     ps_kwargs,
-        #     val_dataloader=val_dataloader,
-        #     log_wandb=log_wandb,
-        #     print_graph=verbose,
-        #     B_true=B_true,
-        #     device=device,
-        #     return_next_epoch=True,
-        #     **train_kwargs,
-        # )
-
-        # # Create mask for main algo
-        # mask_threshold = self._stage1_kwargs["mask_threshold"]
-        # if not skip_masking:
-        #     self._mask = (
-        #         self._ps_model.get_adjacency_matrix().cpu().detach().numpy()
-        #         > mask_threshold
-        #     ).astype(int) * (1 - np.eye(self.d, dtype=int))
-        # else:
-        #     self._mask = 1 - np.eye(self.d, dtype=int)
-        # fraction_edges_mask = self._mask.sum() / (
-        #     self._mask.shape[0] * self._mask.shape[1]
-        # )
-        # print(f"Fraction of possible edges in mask: {fraction_edges_mask}")
-        # if B_true is not None:
-        #     recall_mask = (
-        #         B_true.astype(bool) & self._mask.astype(bool)
-        #     ).sum() / B_true.sum()
-        #     print(f"Recall of mask: {recall_mask}")
-        # else:
-        #     recall_mask = -1
-        # if log_wandb:
-        #     wandb.log(
-        #         {"fraction_edges_mask": fraction_edges_mask, "recall_mask": recall_mask}
-        #     )
+        
 
         # Begin DAG training
         dag_penalty_flavor = self._stage2_kwargs["dag_penalty_flavor"]
