@@ -9,14 +9,12 @@ importlib.reload(diffusers)
 from diffusers.utils import load_image
 import torch
 import numpy as np
-import os
 import matplotlib.pyplot as plt
-from diffusers import DDIMInverseScheduler, DDIMScheduler
 from tqdm import tqdm
 import torch.nn.functional as F
 from PIL import Image
 from torch.optim.adam import Adam
-from typing import Optional, Union, Tuple, List, Callable, Dict
+from typing import Optional, Union, Tuple, Dict
 from torchvision import transforms
 from transformers import CLIPTextModel
 from diffusers.models.modeling_utils import load_state_dict
@@ -274,18 +272,6 @@ def sample(
         if do_classifier_free_guidance:
             noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
             noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
-
-        # Normally we'd rely on the scheduler to handle the update step:
-        # latents = pipe.scheduler.step(noise_pred, t, latents).prev_sample
-        #latents = pipe.scheduler.step(noise_pred, t, latents, return_dict=False)[0]
-        # Instead, let's do it ourselves:
-        
-        # prev_t = max(1, t.item() - (1000 // num_inference_steps))  # t-1
-        # alpha_t = pipe.scheduler.alphas_cumprod[t.item()]
-        # alpha_t_prev = pipe.scheduler.alphas_cumprod[prev_t]
-        # predicted_x0 = (latents - (1 - alpha_t).sqrt() * noise_pred) / alpha_t.sqrt()
-        # direction_pointing_to_xt = (1 - alpha_t_prev).sqrt() * noise_pred
-        # latents = alpha_t_prev.sqrt() * predicted_x0 + direction_pointing_to_xt
 
         prev_timestep = t.item() - pipe.scheduler.config.num_train_timesteps // num_inference_steps
         alpha_prod_t = pipe.scheduler.alphas_cumprod[t.item()]
