@@ -1,0 +1,20 @@
+name: causal-adapter-sd3
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pytorch-cuda=12.1
+  - pip:
+      - -r ./causal-adapter-sd3/requirements.txt
+      - accelerate
+      - transformers
+      - safetensors
+      - scipy
+      - matplotlib
+      - pandas
+      - pillow
+      - tqdm
