@@ -1,4 +1,4 @@
-name: causal-adapter-sd15
+name: mcpl
 channels:
   - pytorch
   - nvidia
@@ -31,3 +31,4 @@ dependencies:
       - lpips
       - gdown
       - clip @ git+https://github.com/openai/CLIP.git
+      - -r ./counterfactual-benchmark/requirements.txt

@@ -1,4 +1,4 @@
-name: causal-adapter-sd3
+name: flux
 channels:
   - pytorch
   - nvidia

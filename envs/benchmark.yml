@@ -1,4 +1,4 @@
-name: causal-adapter-benchmark
+name: mcpl
 channels:
   - pytorch
   - nvidia
