@@ -5,7 +5,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_DATA_DIR = str(REPO_ROOT / "counterfactual-benchmark" / "datasets")
 sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
-from edit_modules.load_celebahq import CelebAHQ
+from causal_datasets.celebahq_dataset import CelebAHQ
 from torchvision.transforms import Resize, ToTensor, CenterCrop, Compose, ConvertImageDtype
 from torch.utils.data import ConcatDataset
 import torch

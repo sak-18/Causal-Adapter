@@ -46,12 +46,12 @@ WORKSPACE_ROOT = Path(
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from edit_modules.load_datasets_adni import (  # noqa: E402
+from causal_datasets.adni_dataset import (  # noqa: E402
     load_data,
     load_extra_attributes,
-    normalize as adni_normalize,
 )
-from edit_modules.load_datasets_morphominist import load_morphomnist_like  # noqa: E402
+from causal_datasets._normalization import normalize as adni_normalize  # noqa: E402
+from causal_datasets.morphomnist_dataset import load_morphomnist_like  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Per-dataset constants

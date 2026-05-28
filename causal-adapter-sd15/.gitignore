@@ -29,6 +29,7 @@ commands_chexpert.txt
 commands_skincancer.txt
 commands_adni.txt
 commands_morphomnist.txt
+test_commands.md
 
 # Open-source release hygiene
 .idea/

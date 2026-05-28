@@ -57,25 +57,8 @@ accelerate launch MCPL.py \
   --lr_warmup_steps 0
 ```
 
-### Inference (example) 🎯
-
-```bash
-python scripts/txt2img_inference.py
-```
-
-### Attention Maps (example) 🧠
-
-```bash
-python scripts/show_attn_maps/plt_attn_maps.py \
-  --prompts_string "orange @ and red * and black & and black !" \
-  --ckpt_path "${MODEL_ID}" \
-  --embedding_path "${PROJECT_ROOT}/logs/<run>/learned_embeds-steps-XXXX.safetensors" \
-  --out_base "${PROJECT_ROOT}/outputs/attention_maps" \
-  --img_size 512
-```
 
 ## Notes 📝
 
 - If you previously installed a conflicting package version, uninstall/reinstall
   your local editable `diffusers` package.
-- Many scripts currently accept legacy argument names containing `mcpl`.
