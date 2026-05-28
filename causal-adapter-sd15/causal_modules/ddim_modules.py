@@ -72,7 +72,7 @@ def align_batch_size(start_latents, prompt, label):
 
     return start_latents, prompt, label
 
-def prompt_aligned_injection_diff(text_encoder, inputs_id, controlnet_cond, task_cond, dataset, dtype=None):
+def prompt_aligned_injection_diff(text_encoder, inputs_id, controlnet_cond, presudo_token_ids,task_cond, dataset, dtype=None):
     """Differentiable version of :func:`prompt_aligned_injection`.
 
     Encodes ``inputs_id`` with ``text_encoder`` and injects the causal
@@ -89,6 +89,7 @@ def prompt_aligned_injection_diff(text_encoder, inputs_id, controlnet_cond, task
         inputs_id: Token id tensor of shape ``(B, L)``.
         controlnet_cond: Causal condition tensor produced by
             ``Causal_ControlNetModel.controlnet_cond_embedding``.
+        presudo_token_ids: Token ids for the pseudo tokens.
         task_cond: Value of ``controlnet.task_cond`` (e.g. ``generation_text_global_after``).
         dataset: Name of the dataset (``'ADNI'`` is treated specially).
         dtype: Optional dtype to cast the returned hidden states to.
@@ -99,7 +100,7 @@ def prompt_aligned_injection_diff(text_encoder, inputs_id, controlnet_cond, task
     if 'after' in task_cond:
         # insert embedding after transformer
         inner = text_encoder.module if hasattr(text_encoder, "module") else text_encoder
-        concept_ids = inner.text_model.embeddings.embed_control.control_concept_ids
+        concept_ids = presudo_token_ids
 
         input_ids_clone = inputs_id.clone()
         encoder_hidden_states = text_encoder(inputs_id)[0]
@@ -153,16 +154,12 @@ def prompt_aligned_injection_diff(text_encoder, inputs_id, controlnet_cond, task
                 encoder_hidden_states[placeholder_idx] = (
                     encoder_hidden_states[placeholder_idx] + controlnet_cond[:, i, :]
                 )
-    else:
-        encoder_hidden_states = text_encoder(inputs_id, attribute_cond=controlnet_cond)[0]
-        if dtype is not None:
-            encoder_hidden_states = encoder_hidden_states.to(dtype=dtype)
 
     return encoder_hidden_states
 
 
 @torch.no_grad()
-def prompt_aligned_injection(pipe, inputs_id, controlnet_cond):
+def prompt_aligned_injection(pipe, inputs_id, controlnet_cond,presudo_token_ids):
     """No-grad wrapper around :func:`prompt_aligned_injection_diff`.
 
     Kept for backward compatibility with all existing sampling / inversion
@@ -172,6 +169,7 @@ def prompt_aligned_injection(pipe, inputs_id, controlnet_cond):
         text_encoder=pipe.text_encoder,
         inputs_id=inputs_id,
         controlnet_cond=controlnet_cond,
+        presudo_token_ids=presudo_token_ids,
         task_cond=pipe.controlnet.task_cond,
         dataset=pipe.controlnet.dataset,
         dtype=pipe.dtype,
@@ -179,7 +177,7 @@ def prompt_aligned_injection(pipe, inputs_id, controlnet_cond):
     
     
 @torch.no_grad()
-def prepare_source_target_embedding(pipe,prompt,label,DSCM_labels=None,intervention_indx=None,intervention_values=None,disentangle=False,guidance_scale=1.0,device = torch.device("cuda")):
+def prepare_source_target_embedding(pipe,prompt,label,presudo_token_ids,DSCM_labels=None,intervention_indx=None,intervention_values=None,disentangle=False,guidance_scale=1.0,device = torch.device("cuda")):
     # Get source embedding
     input_ids = pipe.tokenizer(prompt,
                         padding="max_length",
@@ -191,7 +189,7 @@ def prepare_source_target_embedding(pipe,prompt,label,DSCM_labels=None,intervent
     task_cond = pipe.controlnet.task_cond
    
     if 'generation' in task_cond and 'text' in task_cond: 
-        source_hidden_states = prompt_aligned_injection(pipe,input_ids.clone(),label.unsqueeze(2))
+        source_hidden_states = prompt_aligned_injection(pipe,input_ids.clone(),label.unsqueeze(2),presudo_token_ids)
     else:
         source_hidden_states =  pipe.text_encoder(input_ids.clone())[0].to(dtype=pipe.dtype)
     # Get target embedding
@@ -200,7 +198,7 @@ def prepare_source_target_embedding(pipe,prompt,label,DSCM_labels=None,intervent
     else:
         causal_cond = DSCM_labels
     if 'generation' in task_cond and 'text' in task_cond: 
-        target_hidden_states = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond)
+        target_hidden_states = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond,presudo_token_ids)
     else:
         target_hidden_states =  pipe.text_encoder(input_ids.clone())[0].to(dtype=pipe.dtype)
     # Unconditional Embedding
@@ -231,6 +229,7 @@ def prepare_source_target_embedding(pipe,prompt,label,DSCM_labels=None,intervent
 def sample(
     pipe,
     prompt,
+    presudo_token_ids,
     start_step=0,
     start_latents=None,
     guidance_scale=3.5,
@@ -285,7 +284,7 @@ def sample(
     
     
     if 'generation' in task_cond and 'text' in task_cond: 
-        cond_embeddings = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond)
+        cond_embeddings = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond,presudo_token_ids)
     else:
         cond_embeddings = pipe.text_encoder(input_ids)[0].to(dtype=pipe.dtype)
     
@@ -351,6 +350,7 @@ def sample(
 def sample_schedulers(
     pipe,
     prompt,
+    presudo_token_ids,
     start_step=0,
     start_latents=None,
     guidance_scale=3.5,
@@ -405,7 +405,7 @@ def sample_schedulers(
     
     
     if 'generation' in task_cond and 'text' in task_cond: 
-        cond_embeddings = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond)
+        cond_embeddings = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond,presudo_token_ids)
     else:
         cond_embeddings = pipe.text_encoder(input_ids)[0].to(dtype=pipe.dtype)
     
@@ -540,6 +540,7 @@ def invert(
     pipe,
     start_latents,
     prompt,
+    presudo_token_ids,
     guidance_scale=1,
     num_inference_steps=80,
     num_images_per_prompt=1,
@@ -591,7 +592,7 @@ def invert(
     
     causal_cond,causal_loss = pipe.controlnet.controlnet_cond_embedding.inference(label,intervention_indx=intervention_indx,intervention_values=intervention_values)
     if 'generation' in task_cond and 'text' in task_cond: 
-            encoder_hidden_states = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond)
+            encoder_hidden_states = prompt_aligned_injection(pipe,input_ids.clone(),causal_cond,presudo_token_ids)
     else:
         encoder_hidden_states = pipe.text_encoder(input_ids)[0].to(dtype=pipe.dtype)
     control_embeddings = encoder_hidden_states.clone()
@@ -697,27 +698,45 @@ def save_images_grid(images_list, grid_size, save_path=None):
 
 
 
-def load_mcpl_embeddings(base_model_path,tokenizer,embedding_path=None,presudo_token_ids=None,embed_control=True):
+def load_mcpl_embeddings(base_model_path, tokenizer, embedding_path=None, presudo_token_ids=None):
     text_encoder = CLIPTextModel.from_pretrained(
         base_model_path, subfolder="text_encoder"
     )
+
     if embedding_path is not None:
         state_dict = load_state_dict(embedding_path)
-        embeddings = []
-        tokens = []
-        for key,embed in state_dict.items():
-            tokens.append(key)
-            embeddings.append(embed)
-        token_ids = tokenizer.encode(tokens, add_special_tokens=False)
-        # 7.4 Load token and embedding
-        for token_id, embedding in zip(token_ids, embeddings):
-            # add tokens and get ids
-            # tokenizer.add_tokens(token)
-            # token_id = tokenizer.convert_tokens_to_ids(token)
+
+        # 兼容 presudo_token_ids 是 tensor / list / tuple 的情况
+        if presudo_token_ids is not None:
+            if isinstance(presudo_token_ids, torch.Tensor):
+                presudo_token_ids = presudo_token_ids.detach().cpu().tolist()
+            presudo_token_ids_set = set(presudo_token_ids)
+        else:
+            presudo_token_ids_set = None
+
+        token_ids = []
+
+        for token, embedding in state_dict.items():
+            # 每个 token 单独 encode，避免 tokenizer.encode(tokens) 产生不清晰的结果
+            ids = tokenizer.encode(token, add_special_tokens=False)
+
+            assert len(ids) == 1, (
+                f"Token `{token}` is encoded into multiple ids: {ids}. "
+                f"Please make sure it is added as a single pseudo token."
+            )
+
+            token_id = ids[0]
+            token_ids.append(token_id)
+
+            # 检查当前 token_id 是否在 presudo_token_ids 中
+            if presudo_token_ids_set is not None:
+                assert token_id in presudo_token_ids_set, (
+                    f"Token `{token}` has id {token_id}, "
+                    f"but it is not found in presudo_token_ids: {presudo_token_ids}"
+                )
+
             text_encoder.get_input_embeddings().weight.data[token_id] = embedding
-            print(f"Loaded textual inversion embedding for {token_id}.")
-
-
+            print(f"Loaded textual inversion embedding for token `{token}` with id {token_id}.")
 
     text_encoder.eval()
     return text_encoder
@@ -906,7 +925,7 @@ def ddim_editing(pipe, input_image,label,prompt,num_steps = 50,invert_guidance_s
 
 # Direct inversion + P2P
 @torch.inference_mode()
-def P2P_editing(pipe, input_image,label,prompt,presudo_list,num_steps = 50,invert_guidance_scale=1.0,set_guidance_scale  = 1.0,intervention_indx=None,intervention_values=None,return_PIL = True,disentangle=False,
+def P2P_editing(pipe, input_image,label,presudo_token_ids,prompt,presudo_list,num_steps = 50,invert_guidance_scale=1.0,set_guidance_scale  = 1.0,intervention_indx=None,intervention_values=None,return_PIL = True,disentangle=False,
                 DSCM_labels=None,
                 cross_replace_steps=0.4,
                 self_replace_steps=0.6,
@@ -934,7 +953,7 @@ def P2P_editing(pipe, input_image,label,prompt,presudo_list,num_steps = 50,inver
 
     start_latents, prompt, label = align_batch_size(img_latent, prompt, label)
     
-    text_embeddings,causal_cond = prepare_source_target_embedding(pipe,prompt,label.clone(),DSCM_labels,intervention_indx=intervention_indx,intervention_values=intervention_values,disentangle=disentangle,guidance_scale=set_guidance_scale,device = device)
+    text_embeddings,causal_cond = prepare_source_target_embedding(pipe,prompt,label.clone(),presudo_token_ids,DSCM_labels,intervention_indx=intervention_indx,intervention_values=intervention_values,disentangle=disentangle,guidance_scale=set_guidance_scale,device = device)
     
     need_to_update_token_index = find_update_token_index(label,causal_cond.squeeze(2),prompt[0],presudo_list,pipe.controlnet.dataset)
     
@@ -1534,7 +1553,7 @@ class PNP(nn.Module):
         register_conv_control_efficient(self.pipe, self.conv_injection_timesteps)
     
     @torch.no_grad()
-    def run_pnp(self,noisy_latent,prompt,
+    def run_pnp(self,noisy_latent,prompt,presudo_token_ids,
                 start_step=0,
                 guidance_scale=3.5,
                 num_inference_steps=30,
@@ -1575,7 +1594,7 @@ class PNP(nn.Module):
         latents = start_latents.clone()
         causal_cond,causal_loss = self.pipe.controlnet.controlnet_cond_embedding.inference(label,intervention_indx=intervention_indx,intervention_values=intervention_values,disentangle=disentangle)
         if 'generation' in task_cond and 'text' in task_cond: 
-            encoder_hidden_states = prompt_aligned_injection(self.pipe,input_ids.clone(),causal_cond)
+            encoder_hidden_states = prompt_aligned_injection(self.pipe,input_ids.clone(),causal_cond,presudo_token_ids)
         else:
             encoder_hidden_states = self.pipe.text_encoder(input_ids)[0].to(dtype=self.pipe.dtype)
 
