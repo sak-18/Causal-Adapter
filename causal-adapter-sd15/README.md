@@ -1,64 +1,147 @@
-# Causal-Adapter (SD1.5) 🚀
+# Causal-Adapter (SD1.5)
 
-This repository contains the Stable Diffusion v1.5 implementation used in the
-Causal-Adapter project.
+Stable Diffusion v1.5 implementation of Causal-Adapter. The trainer fine-tunes
+a Causal ControlNet head plus a small set of MCPL pseudo-token embeddings on
+top of a frozen SD1.5 / miniSD backbone.
 
-Note: internal symbols and scripts may still contain legacy `MCPL` names for
-backward compatibility.
+> Some internal symbols and scripts still carry legacy `MCPL` / `presudo`
+> names. They're kept for backward compatibility.
 
-## Installation 🔧
+## Workflow
 
-Create your Python/Conda environment, then install the local modified
+1. **Prepare or download the dataset** for your target domain (Pendulum,
+   ADNI, CelebA, CelebA-HQ, MorphoMNIST, …). See the loaders in
+   `causal_datasets/` for the expected on-disk layout.
+2. **Prepare the pretrained diffusion model.** Either point at a local
+   Stable Diffusion / miniSD folder (recommended behind a firewall) or a
+   HuggingFace model id.
+3. **Train or load an SCM** with the scripts under `SCM_modeling/`. The
+   training script consumes the resulting checkpoint via `--scm_path`.
+4. **Run Causal-Adapter / MCPL training** with `train.py` (examples below).
+
+## Installation
+
+Create your Python / Conda environment, then install the local modified
 `diffusers` package in editable mode:
 
 ```bash
 pip install -e diffusers
 ```
 
-## Pretrained Weights 🔥
+## Required paths
 
-Has tested model IDs:
+`train.py` takes three path-style arguments. Two are required, one is
+optional but commonly supplied:
 
-- `lambdalabs/miniSD-diffusers` 
+| Argument | Required | What it points at |
+| --- | --- | --- |
+| `--pretrained_model_name_or_path` | yes | HuggingFace model id (e.g. `runwayml/stable-diffusion-v1-5`) **or** a local SD / miniSD folder containing `unet/`, `vae/`, `text_encoder/`, `tokenizer/`, `scheduler/`. |
+| `--train_data_dir` | yes | Dataset root. Layout depends on `--dataset`. |
+| `--scm_path` | optional | Path to a pretrained SCM checkpoint produced by `SCM_modeling`. Required when you want to start from a trained SCM head (the typical setup; `--causal_training` defaults to `False`). |
 
+### Behind a firewall
 
-Project weights/checkpoints are published separately on Hugging Face:
+If your machine cannot reach `huggingface.co`, download the SD1.5 / miniSD
+checkpoint once on a connected machine and copy the snapshot folder over.
+Pass the absolute path to `--pretrained_model_name_or_path`. Tested local
+checkpoint:
 
-- `LeiTong02/Causal-Adapter`
-
-Do not commit model weights/checkpoints to git.
-
-## Quick Start ⚡
-
-Set these environment variables first:
-
-```bash
-export PROJECT_ROOT=/path/to/MCPL-diffuser
-export DATA_ROOT=/path/to/dataset
-export MODEL_ID=stable-diffusion-v1-5/stable-diffusion-v1-5
+```
+.../models--lambdalabs--miniSD-diffusers/snapshots/<hash>/
 ```
 
-### Train (example) 🧪
+### Open-source users
+
+If you do have internet access, you can pass any HuggingFace SD1.5 model id
+directly:
 
 ```bash
-accelerate launch MCPL.py \
-  --output_name "causal-adapter-sd15" \
-  --output_dir "${PROJECT_ROOT}/logs" \
-  --pretrained_model_name_or_path "${MODEL_ID}" \
-  --train_data_dir "${DATA_ROOT}/causal_4_concepts/pendulum/3" \
-  --learnable_property "object" \
-  --resolution 512 \
-  --train_batch_size 4 \
-  --gradient_accumulation_steps 1 \
-  --max_train_steps 6100 \
-  --checkpointing_steps 6100 \
-  --learning_rate 5.0e-04 \
-  --lr_scheduler "constant" \
-  --lr_warmup_steps 0
+--pretrained_model_name_or_path "runwayml/stable-diffusion-v1-5"
 ```
 
+The first run will cache the snapshot under `~/.cache/huggingface/`.
 
-## Notes 📝
+## Quick start
 
-- If you previously installed a conflicting package version, uninstall/reinstall
-  your local editable `diffusers` package.
+Train on Pendulum (matches `test_commands.md`):
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python train.py \
+  --pretrained_model_name_or_path "/path/to/miniSD-diffusers" \
+  --train_data_dir "/path/to/pendulum/train/" \
+  --dataset "pendulum" \
+  --resolution 256 \
+  --train_batch_size 2 \
+  --max_train_steps 20000 \
+  --placeholder_string 'a image of @ and * and & and !' \
+  --presudo_words '@,*,&,!' \
+  --presudo_words_infonce '@,*,&,!' \
+  --scm_path "/path/to/scm/best_model.pt" \
+  --output_dir ./logs/logs_pendulum_all \
+  --output_name causal-adapter
+```
+
+The full set of tested commands (Pendulum / ADNI / CelebA-complex) lives in
+`test_commands.md`.
+
+### Important defaults
+
+| Flag | Default | Notes |
+| --- | --- | --- |
+| `--mcpl_training` | `True` | Trains the pseudo-token embeddings. |
+| `--causal_training` | `False` | When `False` (the default), the SCM head is frozen and you must pass `--scm_path`. |
+| `--task_cond` | `generation_text_global_after` | Where the causal vector is injected. All tested runs use this. |
+| `--learning_rate` | `1e-5` | CelebA-complex uses `5e-6`; override per-dataset. |
+| `--lr_scheduler` | `constant` | |
+| `--lr_warmup_steps` | `0` | |
+| `--gradient_accumulation_steps` | `1` | ADNI uses `2`. |
+| `--mixed_precision` | `no` | Pass `fp16` or `bf16` to halve activation memory. |
+
+Run `python train.py --help` for the full surface.
+
+## GPU memory
+
+These are **approximate** recommendations measured against the tested
+commands above. Real usage depends on the batch size, resolution, mixed
+precision, gradient checkpointing, and whether ControlNet / SCM /
+contrastive losses are enabled. Treat the numbers as a starting point and
+profile your own setup.
+
+| Dataset | Resolution | Batch size | Precision | Recommended GPU memory |
+| --- | --- | --- | --- | --- |
+| Pendulum | 256 | 2 | fp32 | ~16 GB |
+| CelebA-complex | 256 | 2 | fp32 | ~16 GB |
+| ADNI | 256 | 16 (`grad_accum=2`) | fp32 | ~24 GB |
+| CelebA-HQ-simple | 512 | 2 | fp32 | ~24 GB |
+| Any of the above | 512 | 4 | fp16 / bf16 | ~24 GB |
+
+To shrink the footprint:
+
+- `--mixed_precision fp16` (or `bf16`) — halves activations.
+- `--gradient_checkpointing` — trades compute for memory on the UNet and
+  text encoder.
+- Lower `--train_batch_size` and raise `--gradient_accumulation_steps` to
+  keep the effective batch size constant.
+- Disable contrastive training (`--presudo_words_infonce ""`) if you don't
+  need the InfoNCE term.
+
+## Pretrained weights
+
+Tested SD1.5 backbones:
+
+- `lambdalabs/miniSD-diffusers`
+- `runwayml/stable-diffusion-v1-5`
+
+Project checkpoints (Causal-Adapter heads, SCMs) are released separately on
+HuggingFace under `LeiTong02/Causal-Adapter`. Do **not** commit weights into
+this repo — the `.gitignore` already excludes `*.safetensors`, `*.ckpt`,
+`*.pt`, etc.
+
+## Notes
+
+- If you previously installed a conflicting `diffusers` version, uninstall
+  and reinstall the local editable package (`pip install -e diffusers`).
+- Output runs are written to
+  `<output_dir>/<timestamp>-<output_name><task_cond>/` and contain the
+  TensorBoard logs, periodic `learned_embeds-steps-*.safetensors`, and the
+  controlnet checkpoint.
