@@ -57,52 +57,52 @@ _DEFAULT_MODEL_KWARGS = {
 NUM_WORKERS = 0
 
 def load_dataset_model(in_dim,dataset,task_cond='generation_text_global',hidden_dims=16,activation='leakyrelu',adjacency_p: float = 2.0,mask=None):
-        # causal discovery
-        # Per-dataset defaults for (in_dim, hidden_dims, activation).
-        # The unified ``ControlNetConditioningEmbedding`` switches its head
-        # type / pre-transform / OOD rule based on ``dataset_name``.
-        if dataset == 'pendulum':
+    # causal discovery
+    # Per-dataset defaults for (in_dim, hidden_dims, activation).
+    # The unified ``ControlNetConditioningEmbedding`` switches its head
+    # type / pre-transform / OOD rule based on ``dataset_name``.
+    if dataset == 'pendulum':
+        in_dim = 4
+        hidden_dims = 16
+        activation = 'leakyrelu'
+    elif 'celeA' in dataset:
+        if 'simple' in dataset:
+            in_dim = 2
+            hidden_dims = 16
+            activation = 'leakyrelu'
+        elif 'complex' in dataset:
             in_dim = 4
             hidden_dims = 16
             activation = 'leakyrelu'
-        elif 'celeA' in dataset:
-            if 'simple' in dataset:
-                in_dim = 2
-                hidden_dims = 16
-                activation = 'leakyrelu'
-            elif 'complex' in dataset:
-                in_dim = 4
-                hidden_dims = 16
-                activation = 'leakyrelu'
-            else:
-                AssertionError('no such {} dataset'.format(dataset))
-        elif 'ADNI' in dataset:
-            in_dim = 6
-            hidden_dims = 64
-        elif 'MorphoMNIST' in dataset:
-            in_dim = 3
+        else:
+            AssertionError('no such {} dataset'.format(dataset))
+    elif 'ADNI' in dataset:
+        in_dim = 6
+        hidden_dims = 64
+    elif 'MorphoMNIST' in dataset:
+        in_dim = 3
+        hidden_dims = 16
+    elif 'celebahq' in dataset:
+        if 'simple' in dataset:
+            in_dim = 7
             hidden_dims = 16
-        elif 'celebahq' in dataset:
-            if 'simple' in dataset:
-                in_dim = 7
-                hidden_dims = 16
-                activation = 'leakyrelu'
-            elif 'complex' in dataset:
-                in_dim = 4
-                hidden_dims = 16
-                activation = 'leakyrelu'
-            else:
-                AssertionError('no such {} dataset'.format(dataset))
+            activation = 'leakyrelu'
+        elif 'complex' in dataset:
+            in_dim = 4
+            hidden_dims = 16
+            activation = 'leakyrelu'
+        else:
+            AssertionError('no such {} dataset'.format(dataset))
 
-        model = ControlNetConditioningEmbedding(
-            in_dim=in_dim,
-            hidden_dims=hidden_dims,
-            activation=activation,
-            adjacency_p=adjacency_p,
-            mask=mask,
-            dataset_name=dataset,
-        )
-        return model
+    model = ControlNetConditioningEmbedding(
+        in_dim=in_dim,
+        hidden_dims=hidden_dims,
+        activation=activation,
+        adjacency_p=adjacency_p,
+        mask=mask,
+        dataset_name=dataset,
+    )
+    return model
 
 
 class CausalNet():
