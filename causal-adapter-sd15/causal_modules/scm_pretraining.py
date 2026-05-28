@@ -20,10 +20,7 @@ from causal_modules.utils.scm_utils import (
     set_random_seed_all,
     train_val_split,
 )
-import importlib
-from causal_modules.control_heads import pendulum,celeA,ADNI,MorphoMNIST
-
-importlib.reload(pendulum)
+from causal_modules.control_heads import ControlNetConditioningEmbedding
 
 
 _DEFAULT_STAGE1_KWARGS = {
@@ -61,78 +58,50 @@ NUM_WORKERS = 0
 
 def load_dataset_model(in_dim,dataset,task_cond='generation_text_global',hidden_dims=16,activation='leakyrelu',adjacency_p: float = 2.0,mask=None):
         # causal discovery
-        if 'discovery' in task_cond:
-            mask=None
-            if dataset == 'pendulum':
-                autoencoder = pendulum.ControlNetConditioningEmbedding_discovery
-                in_dim =4
-                hidden_dims=16
+        # Per-dataset defaults for (in_dim, hidden_dims, activation).
+        # The unified ``ControlNetConditioningEmbedding`` switches its head
+        # type / pre-transform / OOD rule based on ``dataset_name``.
+        if dataset == 'pendulum':
+            in_dim = 4
+            hidden_dims = 16
+            activation = 'leakyrelu'
+        elif 'celeA' in dataset:
+            if 'simple' in dataset:
+                in_dim = 2
+                hidden_dims = 16
                 activation = 'leakyrelu'
-            if 'celeA' in dataset:
-                autoencoder = celeA.ControlNetConditioningEmbedding_discovery
-                if 'simple' in dataset:
-                    in_dim =2
-                    hidden_dims=16
-                    activation = 'leakyrelu'
-                elif 'complex' in dataset:
-                    in_dim =4
-                    hidden_dims=16
-                    activation = 'leakyrelu'      
-                else:
-                    AssertionError('no such {} dataset'.format(dataset))
-            if 'ADNI' in dataset:
-                autoencoder = ADNI.ControlNetConditioningEmbedding_discovery
-                in_dim =6
-                hidden_dims=64
-            if 'MorphoMNIST' in dataset:
-                autoencoder = MorphoMNIST.ControlNetConditioningEmbedding_discovery
-                in_dim =3
-                hidden_dims=16
+            elif 'complex' in dataset:
+                in_dim = 4
+                hidden_dims = 16
+                activation = 'leakyrelu'
+            else:
+                AssertionError('no such {} dataset'.format(dataset))
+        elif 'ADNI' in dataset:
+            in_dim = 6
+            hidden_dims = 64
+        elif 'MorphoMNIST' in dataset:
+            in_dim = 3
+            hidden_dims = 16
+        elif 'celebahq' in dataset:
+            if 'simple' in dataset:
+                in_dim = 7
+                hidden_dims = 16
+                activation = 'leakyrelu'
+            elif 'complex' in dataset:
+                in_dim = 4
+                hidden_dims = 16
+                activation = 'leakyrelu'
+            else:
+                AssertionError('no such {} dataset'.format(dataset))
 
-        else:
-            if dataset == 'pendulum':
-                autoencoder = pendulum.ControlNetConditioningEmbedding
-                in_dim =4
-                hidden_dims=16
-                activation = 'leakyrelu'
-            if 'celeA' in dataset:
-                autoencoder = celeA.ControlNetConditioningEmbedding
-                if 'simple' in dataset:
-                    in_dim =2
-                    hidden_dims=16
-                    activation = 'leakyrelu'
-                elif 'complex' in dataset:
-                    in_dim =4
-                    hidden_dims=16
-                    activation = 'leakyrelu'      
-                else:
-                    AssertionError('no such {} dataset'.format(dataset))
-            if 'ADNI' in dataset:
-                autoencoder = ADNI.ControlNetConditioningEmbedding
-                in_dim =6
-                hidden_dims=64
-            if 'MorphoMNIST' in dataset:
-                autoencoder = MorphoMNIST.ControlNetConditioningEmbedding
-                in_dim =3
-                hidden_dims=16
-            if 'celebahq' in dataset:
-                autoencoder = celeA.ControlNetConditioningEmbedding
-                if 'simple' in dataset:
-                    in_dim =7
-                    hidden_dims=16
-                    activation = 'leakyrelu'
-                elif 'complex' in dataset:
-                    in_dim =4
-                    hidden_dims=16
-                    activation = 'leakyrelu'      
-                else:
-                    AssertionError('no such {} dataset'.format(dataset))
-            
-        model = autoencoder(in_dim = in_dim,
-                                    hidden_dims = hidden_dims,
-                                    activation = activation,
-                                    adjacency_p = adjacency_p,
-                                    mask = mask)
+        model = ControlNetConditioningEmbedding(
+            in_dim=in_dim,
+            hidden_dims=hidden_dims,
+            activation=activation,
+            adjacency_p=adjacency_p,
+            mask=mask,
+            dataset_name=dataset,
+        )
         return model
 
 

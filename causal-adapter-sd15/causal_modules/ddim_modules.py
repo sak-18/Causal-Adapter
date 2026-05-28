@@ -72,53 +72,110 @@ def align_batch_size(start_latents, prompt, label):
 
     return start_latents, prompt, label
 
-@torch.no_grad()
-def prompt_aligned_injection(pipe,inputs_id,controlnet_cond):
-    data_type=pipe.dtype
-    text_encoder= pipe.text_encoder
-    if 'after' in pipe.controlnet.task_cond:
-        # insert embedding after transformer
-        def get_concept_ids(text_encoder):
-            model = text_encoder.module if hasattr(text_encoder, "module") else text_encoder
-            return model.text_model.embeddings.embed_control.control_concept_ids
+def prompt_aligned_injection_diff(text_encoder, inputs_id, controlnet_cond, task_cond, dataset, dtype=None):
+    """Differentiable version of :func:`prompt_aligned_injection`.
 
-        concept_ids = get_concept_ids(text_encoder)
+    Encodes ``inputs_id`` with ``text_encoder`` and injects the causal
+    ``controlnet_cond`` either by summing it into the placeholder-token
+    positions of the hidden states (``*_after`` task_cond) or by passing it as
+    ``attribute_cond`` to the text encoder (non-``after`` task_cond).
+
+    Unlike :func:`prompt_aligned_injection` this helper does **not** wrap the
+    forward pass in ``torch.no_grad`` so it is safe to use inside the training
+    loop where gradients must flow back into ``text_encoder``.
+
+    Args:
+        text_encoder: HF text encoder (possibly wrapped by ``DistributedDataParallel``).
+        inputs_id: Token id tensor of shape ``(B, L)``.
+        controlnet_cond: Causal condition tensor produced by
+            ``Causal_ControlNetModel.controlnet_cond_embedding``.
+        task_cond: Value of ``controlnet.task_cond`` (e.g. ``generation_text_global_after``).
+        dataset: Name of the dataset (``'ADNI'`` is treated specially).
+        dtype: Optional dtype to cast the returned hidden states to.
+
+    Returns:
+        ``encoder_hidden_states`` of shape ``(B, L, D)``.
+    """
+    if 'after' in task_cond:
+        # insert embedding after transformer
+        inner = text_encoder.module if hasattr(text_encoder, "module") else text_encoder
+        concept_ids = inner.text_model.embeddings.embed_control.control_concept_ids
+
         input_ids_clone = inputs_id.clone()
-        encoder_hidden_states = text_encoder(inputs_id)[0].to(dtype=data_type)
-        if pipe.controlnet.dataset == 'ADNI':
+        encoder_hidden_states = text_encoder(inputs_id)[0]
+        if dtype is not None:
+            encoder_hidden_states = encoder_hidden_states.to(dtype=dtype)
+
+        if dataset == 'ADNI':
             controlnet_cond_clone = controlnet_cond.clone()
-            if len(concept_ids)==3:
-                #if controlnet_cond_clone.shape[1] == 16:
+            if len(concept_ids) == 3:
                 # only use brain_v, ven_v and slice 0-9 following benchmark
-                controlnet_cond_clone=controlnet_cond_clone[:,4:,:]
-            if controlnet_cond_clone.shape[1]==6:
-                for i,token_id in enumerate(concept_ids):
+                controlnet_cond_clone = controlnet_cond_clone[:, 4:, :]
+            if controlnet_cond_clone.shape[1] == 6:
+                for i, token_id in enumerate(concept_ids):
                     placeholder_idx = torch.where(input_ids_clone == token_id)
-                    encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i,:]
+                    encoder_hidden_states[placeholder_idx] = (
+                        encoder_hidden_states[placeholder_idx] + controlnet_cond_clone[:, i, :]
+                    )
             elif controlnet_cond_clone.shape[1] == 12:
-                for i,token_id in enumerate(concept_ids):
+                for i, token_id in enumerate(concept_ids):
                     placeholder_idx = torch.where(input_ids_clone == token_id)
-                    if i==len(concept_ids)-1:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i:].reshape(-1,1)
+                    if i == len(concept_ids) - 1:
+                        encoder_hidden_states[placeholder_idx] = (
+                            encoder_hidden_states[placeholder_idx]
+                            + controlnet_cond_clone[:, i:].reshape(-1, 1)
+                        )
                     else:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i,:]
+                        encoder_hidden_states[placeholder_idx] = (
+                            encoder_hidden_states[placeholder_idx] + controlnet_cond_clone[:, i, :]
+                        )
             elif controlnet_cond_clone.shape[1] > 12:
-                for i,token_id in enumerate(concept_ids):
+                for i, token_id in enumerate(concept_ids):
                     placeholder_idx = torch.where(input_ids_clone == token_id)
-                    if i==0:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,:2].reshape(-1,1)
-                    elif i==len(concept_ids)-1:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,-10:].reshape(-1,1)
+                    if i == 0:
+                        encoder_hidden_states[placeholder_idx] = (
+                            encoder_hidden_states[placeholder_idx]
+                            + controlnet_cond_clone[:, :2].reshape(-1, 1)
+                        )
+                    elif i == len(concept_ids) - 1:
+                        encoder_hidden_states[placeholder_idx] = (
+                            encoder_hidden_states[placeholder_idx]
+                            + controlnet_cond_clone[:, -10:].reshape(-1, 1)
+                        )
                     else:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i+1,:]
+                        encoder_hidden_states[placeholder_idx] = (
+                            encoder_hidden_states[placeholder_idx]
+                            + controlnet_cond_clone[:, i + 1, :]
+                        )
         else:
-            for i,token_id in enumerate(concept_ids):
+            for i, token_id in enumerate(concept_ids):
                 placeholder_idx = torch.where(input_ids_clone == token_id)
-                encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond[:,i,:]
-    else:    
-        encoder_hidden_states = text_encoder(inputs_id,attribute_cond = controlnet_cond)[0].to(dtype=data_type)
-    
+                encoder_hidden_states[placeholder_idx] = (
+                    encoder_hidden_states[placeholder_idx] + controlnet_cond[:, i, :]
+                )
+    else:
+        encoder_hidden_states = text_encoder(inputs_id, attribute_cond=controlnet_cond)[0]
+        if dtype is not None:
+            encoder_hidden_states = encoder_hidden_states.to(dtype=dtype)
+
     return encoder_hidden_states
+
+
+@torch.no_grad()
+def prompt_aligned_injection(pipe, inputs_id, controlnet_cond):
+    """No-grad wrapper around :func:`prompt_aligned_injection_diff`.
+
+    Kept for backward compatibility with all existing sampling / inversion
+    callsites that pass the ``pipe`` object directly.
+    """
+    return prompt_aligned_injection_diff(
+        text_encoder=pipe.text_encoder,
+        inputs_id=inputs_id,
+        controlnet_cond=controlnet_cond,
+        task_cond=pipe.controlnet.task_cond,
+        dataset=pipe.controlnet.dataset,
+        dtype=pipe.dtype,
+    )
     
     
 @torch.no_grad()
@@ -247,17 +304,12 @@ def sample(
                 assert negtive_prompt_embedding is not None, 'negative_prompt_embedding should be provided when do_classifier_free_guidance is True'
         else:
             encoder_hidden_states = cond_embeddings
-        (down_block_res_samples, mid_block_res_sample),_,_,_ = pipe.controlnet(
+        (down_block_res_samples, mid_block_res_sample),_,_ = pipe.controlnet(
                     latent_model_input,
                     t,
                     encoder_hidden_states=encoder_hidden_states,
                     controlnet_cond=None,
                     return_dict=False,
-                    label = causal_cond.clone(),
-                    training=False,
-                    sampling=True,
-                    intervention_indx=intervention_indx,
-                    intervention_values=intervention_values
 
         )
 
@@ -378,11 +430,6 @@ def sample_schedulers(
                     encoder_hidden_states=encoder_hidden_states,
                     controlnet_cond=None,
                     return_dict=False,
-                    label = causal_cond.clone(),
-                    training=False,
-                    sampling=True,
-                    intervention_indx=intervention_indx,
-                    intervention_values=intervention_values
 
         )
 
@@ -573,11 +620,7 @@ def invert(
                     encoder_hidden_states=encoder_hidden_states,
                     controlnet_cond=controlnet_image,
                     return_dict=False,
-                    label = label.unsqueeze(2),
-                    training=False,
-                    sampling=True,
-                    intervention_indx=intervention_indx,
-                    intervention_values=intervention_values
+    
 
         )
         
@@ -1555,9 +1598,6 @@ class PNP(nn.Module):
                     encoder_hidden_states=encoder_hidden_states,
                     controlnet_cond=None,
                     return_dict=False,
-                    label = label,
-                    training=False,
-                    sampling=True,
 
              )
 

@@ -57,6 +57,7 @@ import matplotlib.pyplot as plt
 from diffusers.utils.torch_utils import is_compiled_module
 from causal_modules.p2p_edits import mcpl_utils
 from causal_modules.p2p_edits.p2p_ldm_utils import LocalMask, AttentionMask
+from causal_modules.ddim_modules import prompt_aligned_injection_diff
 import copy
 if is_wandb_available():
     import wandb
@@ -1074,18 +1075,38 @@ def main():
                 
                 # controlnet output
                 batch_input_ids = batch["input_ids"].clone()
-                (down_block_res_samples, mid_block_res_sample),causal_loss,control_embeddings,_ = controlnet(
+
+                # Build the causal-conditioned text embeddings outside the
+                # controlnet (the forward used to do this internally for the
+                # generation+text task_cond). The causal_loss is now produced
+                # here as well so the controlnet only handles the down/mid
+                # blocks. ``cond_embeddings`` keeps gradients flowing back into
+                # ``controlnet_cond_embedding`` and ``text_encoder``.
+                cn_module = controlnet.module if hasattr(controlnet, "module") else controlnet
+                controlnet_cond, causal_loss = cn_module.controlnet_cond_embedding(
+                    batch['label'].to(dtype=weight_dtype)
+                )
+                cond_embeddings = prompt_aligned_injection_diff(
+                    text_encoder=text_encoder,
+                    inputs_id=batch["input_ids"],
+                    controlnet_cond=controlnet_cond,
+                    task_cond=cn_module.task_cond,
+                    dataset=cn_module.dataset,
+                    dtype=weight_dtype,
+                )
+
+                (down_block_res_samples, mid_block_res_sample), _, _ = controlnet(
                         noisy_latents,
                         timesteps,
-                        encoder_hidden_states=batch["input_ids"],
-                        controlnet_cond=None,   
+                        encoder_hidden_states=cond_embeddings,
+                        controlnet_cond=None,
                         return_dict=False,
-                        label = batch['label'].to(dtype=weight_dtype),
-                        training = True,
-                        text_encoder = text_encoder,
                 )
+                # ``control_embeddings`` is now just ``cond_embeddings`` echoed
+                # back by the controlnet, but we keep the unpacking for
+                # backward compatibility with the 4-tuple return.
                 if 'global' in args.task_cond:
-                    encoder_hidden_states = control_embeddings
+                    encoder_hidden_states = cond_embeddings
                 # else is use the local embedding for unet
                 else:
                     encoder_hidden_states = text_encoder(batch_input_ids)[0].to(dtype=weight_dtype)
