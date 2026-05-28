@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="./CA_logo.png" alt="Causal-Adapter logo" width="220"/>
+  <img src="./CA_logo.png" alt="Causal-Adapter logo" width="280"/>
 </p>
 
-<h1 align="center">Causal-Adapter</h1>
+<!--<h1 align="center">Causal-Adapter</h1>-->
 
 <p align="center">
   <b>Taming Text-to-Image Diffusion for Faithful Counterfactual Generation</b>
