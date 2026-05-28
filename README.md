@@ -11,6 +11,7 @@
 </p>
 
 <p align="center">
+  <a href="#news">News</a> ·
   <a href="#repository-structure">Structure</a> ·
   <a href="#getting-started">Getting Started</a> ·
   <a href="#pretrained-weights">Pretrained Weights</a> ·
@@ -19,6 +20,11 @@
 </p>
 
 ---
+
+## News
+
+- **2026-05-28** — Open-sourced Causal-Adapter training code across three datasets (Pendulum, ADNI, CelebA).
+- **2026-05-01** — [Causal-Adapter](https://icml.cc/virtual/2026/poster/61202) accepted for a poster presentation at **ICML 2026** 🔥.
 
 ## Overview
 
