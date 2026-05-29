@@ -109,7 +109,7 @@ def direct_inversion_p2p_guidance_diffusion_step(pipe, controller, latents, cont
     else:
         latents_input = torch.cat([latents] * 2)
         bs = len(context)//len(causal_cond)
-        (down_block_res_samples, mid_block_res_sample),_,_,_ = pipe.controlnet(
+        (down_block_res_samples, mid_block_res_sample),_,_= pipe.controlnet(
                     latents_input,
                     t,
                     encoder_hidden_states=context,
