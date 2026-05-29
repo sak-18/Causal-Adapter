@@ -107,13 +107,13 @@ precision, gradient checkpointing, and whether ControlNet / SCM /
 contrastive losses are enabled. Treat the numbers as a starting point and
 profile your own setup.
 
-| Dataset | Resolution | Batch size | Precision | Recommended GPU memory |
+| Dataset | Resolution | Batch size | Precision | Recommended GPU memory (train)| Recommended GPU memory (inference)|
 | --- | --- | --- | --- | --- |
-| Pendulum | 256 | 2 | fp32 | ~16 GB |
-| CelebA-complex | 256 | 2 | fp32 | ~16 GB |
-| ADNI | 256 | 16 (`grad_accum=2`) | fp32 | ~24 GB |
-| CelebA-HQ-simple | 512 | 2 | fp32 | ~24 GB |
-| Any of the above | 512 | 4 | fp16 / bf16 | ~24 GB |
+| Pendulum | 256 | 2 | fp32 | ~16 GB |6234MiB|
+| CelebA-complex | 256 | 2 | fp32 | ~16 GB |6234MiB|
+| ADNI | 256 | 16 (`grad_accum=2`) | fp32 | ~24 GB |6234MiB|
+| CelebA-HQ-simple | 512 | 2 | fp32 | ~24 GB |6234MiB|
+| Any of the above | 512 | 4 | fp16 / bf16 | ~24 GB |6234MiB|
 
 To shrink the footprint:
 

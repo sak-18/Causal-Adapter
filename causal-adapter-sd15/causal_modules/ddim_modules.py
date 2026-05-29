@@ -161,7 +161,7 @@ def prompt_aligned_injection_diff(text_encoder, inputs_id, controlnet_cond, pres
 @torch.no_grad()
 def prompt_aligned_injection(pipe, inputs_id, controlnet_cond,presudo_token_ids):
     """No-grad wrapper around :func:`prompt_aligned_injection_diff`.
-
+    controlnet_cond (attributes) is injected into the text encoder's hidden states at the positions
     Kept for backward compatibility with all existing sampling / inversion
     callsites that pass the ``pipe`` object directly.
     """
@@ -424,7 +424,7 @@ def sample_schedulers(
                 assert negtive_prompt_embedding is not None, 'negative_prompt_embedding should be provided when do_classifier_free_guidance is True'
         else:
             encoder_hidden_states = cond_embeddings
-        (down_block_res_samples, mid_block_res_sample),_,_,_ = pipe.controlnet(
+        (down_block_res_samples, mid_block_res_sample),_,_ = pipe.controlnet(
                     latent_model_input,
                     t,
                     encoder_hidden_states=encoder_hidden_states,
@@ -615,7 +615,7 @@ def invert(
         latent_model_input = pipe.scheduler.scale_model_input(latent_model_input, t)
 
                 
-        (down_block_res_samples, mid_block_res_sample),_,_,_ = pipe.controlnet(
+        (down_block_res_samples, mid_block_res_sample),_,_ = pipe.controlnet(
                     latent_model_input,
                     t,
                     encoder_hidden_states=encoder_hidden_states,
@@ -698,7 +698,12 @@ def save_images_grid(images_list, grid_size, save_path=None):
 
 
 
-def load_mcpl_embeddings(base_model_path, tokenizer, embedding_path=None, presudo_token_ids=None):
+def load_mcpl_embeddings(
+    base_model_path,
+    tokenizer,
+    embedding_path=None,
+    pseudo_token_ids=None
+):
     text_encoder = CLIPTextModel.from_pretrained(
         base_model_path, subfolder="text_encoder"
     )
@@ -706,37 +711,51 @@ def load_mcpl_embeddings(base_model_path, tokenizer, embedding_path=None, presud
     if embedding_path is not None:
         state_dict = load_state_dict(embedding_path)
 
-        # 兼容 presudo_token_ids 是 tensor / list / tuple 的情况
-        if presudo_token_ids is not None:
-            if isinstance(presudo_token_ids, torch.Tensor):
-                presudo_token_ids = presudo_token_ids.detach().cpu().tolist()
-            presudo_token_ids_set = set(presudo_token_ids)
+        if pseudo_token_ids is not None:
+            if isinstance(pseudo_token_ids, torch.Tensor):
+                pseudo_token_ids = pseudo_token_ids.detach().cpu().tolist()
+            pseudo_token_ids_set = set(pseudo_token_ids)
         else:
-            presudo_token_ids_set = None
+            pseudo_token_ids_set = None
 
         token_ids = []
 
         for token, embedding in state_dict.items():
-            # 每个 token 单独 encode，避免 tokenizer.encode(tokens) 产生不清晰的结果
-            ids = tokenizer.encode(token, add_special_tokens=False)
+            # 这里不要用 tokenizer.encode(token)
+            # 因为 token 可能是 vocab-level token，例如 '&</w>'
+            token_id = tokenizer.convert_tokens_to_ids(token)
 
-            assert len(ids) == 1, (
-                f"Token `{token}` is encoded into multiple ids: {ids}. "
-                f"Please make sure it is added as a single pseudo token."
-            )
-
-            token_id = ids[0]
-            token_ids.append(token_id)
-
-            # 检查当前 token_id 是否在 presudo_token_ids 中
-            if presudo_token_ids_set is not None:
-                assert token_id in presudo_token_ids_set, (
-                    f"Token `{token}` has id {token_id}, "
-                    f"but it is not found in presudo_token_ids: {presudo_token_ids}"
+            if token_id is None or token_id == tokenizer.unk_token_id:
+                raise ValueError(
+                    f"Token `{token}` cannot be found in tokenizer vocabulary. "
+                    f"Please make sure it has been added as a pseudo token."
                 )
 
+            token_ids.append(token_id)
+
+            if pseudo_token_ids_set is not None:
+                assert token_id in pseudo_token_ids_set, (
+                    f"Token `{token}` has id {token_id}, "
+                    f"but it is not found in pseudo_token_ids: {pseudo_token_ids}"
+                )
+
+            # 兼容 embedding 是 [dim] 或 [1, dim]
+            if embedding.ndim == 2 and embedding.shape[0] == 1:
+                embedding = embedding.squeeze(0)
+
+            embedding = embedding.to(
+                device=text_encoder.get_input_embeddings().weight.device,
+                dtype=text_encoder.get_input_embeddings().weight.dtype
+            )
+
             text_encoder.get_input_embeddings().weight.data[token_id] = embedding
-            print(f"Loaded textual inversion embedding for token `{token}` with id {token_id}.")
+
+            print(
+                f"Loaded textual inversion embedding for token `{token}` "
+                f"with id {token_id}."
+            )
+
+        print(f"Loaded pseudo token ids: {token_ids}")
 
     text_encoder.eval()
     return text_encoder
@@ -843,7 +862,7 @@ def get_dataset_attrs(dataset):
     return attr_keys
 
 
-def ddim_editing(pipe, input_image,label,prompt,num_steps = 50,invert_guidance_scale=1.0,set_guidance_scale  = 1.0,intervention_indx=None,intervention_values=None,return_PIL = True,disentangle=False,DSCM_labels=None,null_optimization=False,controller=None,pnp_inversion=False):
+def ddim_editing(pipe, input_image,label,presudo_token_ids,prompt,num_steps = 50,invert_guidance_scale=1.0,set_guidance_scale  = 1.0,intervention_indx=None,intervention_values=None,return_PIL = True,disentangle=False,DSCM_labels=None,null_optimization=False,controller=None,pnp_inversion=False):
     # global update the num_DDIM_steps
     global NUM_DDIM_STEPS
     NUM_DDIM_STEPS = num_steps
@@ -856,6 +875,7 @@ def ddim_editing(pipe, input_image,label,prompt,num_steps = 50,invert_guidance_s
     inverted_latents,output_context,input_ids = invert(pipe,
         img_latent,
         prompt,
+        presudo_token_ids,
         guidance_scale=invert_guidance_scale,
         num_inference_steps=num_steps,
         num_images_per_prompt=1,
@@ -868,7 +888,8 @@ def ddim_editing(pipe, input_image,label,prompt,num_steps = 50,invert_guidance_s
     num_inner_steps = 10
     early_stop_epsilon = 1e-5
     if null_optimization:
-        null_inversion = NullInversion(pipe,num_steps,output_context,input_ids,label.clone(),GUIDANCE_SCALE=set_guidance_scale)
+        
+        null_inversion = NullInversion(pipe,num_steps,output_context,input_ids,label.clone(),presudo_token_ids=presudo_token_ids,GUIDANCE_SCALE=set_guidance_scale)
         uncond_embeddings = null_inversion.invert(ddim_latents=inverted_latents,num_inner_steps=num_inner_steps, early_stop_epsilon=early_stop_epsilon)
     else:
         uncond_embeddings = None
@@ -885,6 +906,7 @@ def ddim_editing(pipe, input_image,label,prompt,num_steps = 50,invert_guidance_s
         pnp = PNP(deepcopy(pipe),num_steps,device=device)
         final_im,causal_cond = pnp.run_pnp(inverted_latents,
                     prompt,
+                    presudo_token_ids,
                     start_step=s_step,
                     guidance_scale=set_guidance_scale,
                     num_inference_steps=num_steps-1,
@@ -905,6 +927,7 @@ def ddim_editing(pipe, input_image,label,prompt,num_steps = 50,invert_guidance_s
         final_im,causal_cond = sample(
                 pipe,
                 prompt,
+                presudo_token_ids,
                 start_step=s_step,
                 start_latents=inverted_latents[-(s_step + 1)].clone(),
                 guidance_scale=set_guidance_scale,
@@ -1081,7 +1104,7 @@ class NullInversion:
     
     def get_noise_pred_single(self, latents, t,context):
         
-        (down_block_res_samples, mid_block_res_sample),causal_loss,_,_ = self.model.controlnet(
+        (down_block_res_samples, mid_block_res_sample),_,_ = self.model.controlnet(
                     latents,
                     t,
                     encoder_hidden_states=context,
@@ -1108,7 +1131,7 @@ class NullInversion:
             do_classifier_free_guidance = False
         latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
         #latent_model_input = self.model.scheduler.scale_model_input(latent_model_input, t)
-        (down_block_res_samples, mid_block_res_sample),causal_loss,_,_ = self.model.controlnet(
+        (down_block_res_samples, mid_block_res_sample),_,_ = self.model.controlnet(
                     latent_model_input,
                     t,
                     encoder_hidden_states=context,
@@ -1169,6 +1192,7 @@ class NullInversion:
             return_tensors="pt",
         )
         text_embeddings = self.model.text_encoder(text_input.input_ids.to(self.model.device))[0]
+        text_embeddings = prompt_aligned_injection(self.model, text_input.input_ids, self.label, presudo_token_ids=self.presudo_token_ids)
         self.context = torch.cat([uncond_embeddings, text_embeddings])
         self.prompt = prompt
 
@@ -1238,7 +1262,7 @@ class NullInversion:
         return uncond_embeddings
         
     
-    def __init__(self, model,NUM_DDIM_STEPS,context,inputs_ids,label,GUIDANCE_SCALE):
+    def __init__(self, model,NUM_DDIM_STEPS,context,inputs_ids,label,presudo_token_ids,GUIDANCE_SCALE):
         # scheduler = DDIMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", clip_sample=False,
         #                           set_alpha_to_one=False)
         self.model = model
@@ -1249,6 +1273,7 @@ class NullInversion:
         self.input_ids = inputs_ids
         self.label = label
         self.GUIDANCE_SCALE = GUIDANCE_SCALE
+        self.presudo_token_ids = presudo_token_ids
 
 
 class LocalBlend:
@@ -1611,7 +1636,7 @@ class PNP(nn.Module):
             # Expand the latents if we are doing classifier free guidance
             latent_model_input = torch.cat(([pnp_noisy_latents]+[latents] * 2)) if do_classifier_free_guidance else latents
             #latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
-            (down_block_res_samples, mid_block_res_sample),_,_,_ = self.pipe.controlnet(
+            (down_block_res_samples, mid_block_res_sample),_,_ = self.pipe.controlnet(
                     latent_model_input,
                     t,
                     encoder_hidden_states=encoder_hidden_states,

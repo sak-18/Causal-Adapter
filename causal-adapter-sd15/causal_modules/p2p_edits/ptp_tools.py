@@ -762,7 +762,7 @@ def plot_img_attn_mask(stablediff,tokenizer, prompts, emb_path_list, exp_names, 
     plt.show()
     plt.clf()
 
-def plot_img_attn_mask_textcontrol(pipe, prompts, presudo_words,condition_image, device, out_dir, out_name,res=16,  \
+def plot_img_attn_mask_textcontrol(pipe, prompts, presudo_words,presudo_token_ids,condition_image, device, out_dir, out_name,res=16,  \
     latent=None, GUIDANCE_SCALE=5.0, attn_threshold=0.5,intervention_indx=None,intervention_values=None,only_sampling=False,  \
     show_text=True, mask_concepts=False,class_select=True, g_gpu=None,exp_names=None,num_steps=50,img_size=256,from_where=["up", "down"],label=None,dataset='celeba',save_masks=False):
     """
@@ -837,6 +837,7 @@ def plot_img_attn_mask_textcontrol(pipe, prompts, presudo_words,condition_image,
     inverted_latents,_,_ = ddim_modules.invert(pipe,
         img_latent,
         prompts[0],
+        presudo_token_ids,
         guidance_scale=1.0,
         num_inference_steps=num_steps,
         num_images_per_prompt=1,
@@ -860,7 +861,7 @@ def plot_img_attn_mask_textcontrol(pipe, prompts, presudo_words,condition_image,
     controller = AttentionStore()
     controller.reset()
 
-    images, _ = ptp_utils.DDIM_sample_textcond(pipe, prompts[0], controller, start_step=s_step,
+    images, _ = ptp_utils.DDIM_sample_textcond(pipe, prompts[0], presudo_token_ids,controller, start_step=s_step,
                                                 start_latents=start_lant,
                                                 guidance_scale=GUIDANCE_SCALE,
                                                 num_inference_steps=num_steps,

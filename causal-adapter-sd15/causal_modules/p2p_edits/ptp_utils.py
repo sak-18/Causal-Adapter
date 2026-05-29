@@ -21,52 +21,6 @@ from IPython.display import display
 from tqdm.notebook import tqdm
 
 
-def prompt_aligned_injection(pipe,inputs_id,controlnet_cond):
-    data_type=pipe.dtype
-    text_encoder= pipe.text_encoder
-    if 'after' in pipe.controlnet.task_cond:
-        # insert embedding after transformer
-        def get_concept_ids(text_encoder):
-            model = text_encoder.module if hasattr(text_encoder, "module") else text_encoder
-            return model.text_model.embeddings.embed_control.control_concept_ids
-
-        concept_ids = get_concept_ids(text_encoder)
-        input_ids_clone = inputs_id.clone()
-        encoder_hidden_states = text_encoder(inputs_id)[0].to(dtype=data_type)
-        if pipe.controlnet.dataset == 'ADNI':
-            controlnet_cond_clone = controlnet_cond.clone()
-            if len(concept_ids)==3:
-                #if controlnet_cond_clone.shape[1] == 16:
-                # only use brain_v, ven_v and slice 0-9 following benchmark
-                controlnet_cond_clone=controlnet_cond_clone[:,4:,:]
-            if controlnet_cond_clone.shape[1]==6:
-                for i,token_id in enumerate(concept_ids):
-                    placeholder_idx = torch.where(input_ids_clone == token_id)
-                    encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i,:]
-            elif controlnet_cond_clone.shape[1] == 12:
-                for i,token_id in enumerate(concept_ids):
-                    placeholder_idx = torch.where(input_ids_clone == token_id)
-                    if i==len(concept_ids)-1:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i:].reshape(-1,1)
-                    else:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i,:]
-            elif controlnet_cond_clone.shape[1] > 12:
-                for i,token_id in enumerate(concept_ids):
-                    placeholder_idx = torch.where(input_ids_clone == token_id)
-                    if i==0:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,:2].reshape(-1,1)
-                    elif i==len(concept_ids)-1:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,-10:].reshape(-1,1)
-                    else:
-                        encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond_clone[:,i+1,:]
-        else:
-            for i,token_id in enumerate(concept_ids):
-                placeholder_idx = torch.where(input_ids_clone == token_id)
-                encoder_hidden_states[placeholder_idx] = encoder_hidden_states[placeholder_idx]+ controlnet_cond[:,i,:]
-    else:    
-        encoder_hidden_states = text_encoder(encoder_hidden_states,attribute_cond = controlnet_cond)[0].to(dtype=data_type)
-    
-    return encoder_hidden_states
 
 def align_batch_size(start_latents, prompt, label):
     """
@@ -385,6 +339,7 @@ def DDIM_sample_mcpl(
 def DDIM_sample_textcond(
     model, # model is pipe
     prompt,
+    presudo_token_ids,
     controller,
     start_step=0,
     start_latents=None,
@@ -437,8 +392,9 @@ def DDIM_sample_textcond(
     causal_cond,causal_loss = model.controlnet.controlnet_cond_embedding.inference(label,intervention_indx=intervention_indx,intervention_values=intervention_values)
     # if do_classifier_free_guidance and uncond_embeddings is not None:
     #     negtive_prompt_embedding = uncond_embeddings[i].expand(*negtive_prompt_embedding.shape)
-    if 'generation' in task_cond and 'text' in task_cond: 
-        encoder_hidden_states = prompt_aligned_injection(model,input_ids.clone(),causal_cond)
+    if 'generation' in task_cond and 'text' in task_cond:
+        from causal_modules.ddim_modules import prompt_aligned_injection
+        encoder_hidden_states = prompt_aligned_injection(model,input_ids.clone(),causal_cond,presudo_token_ids)
     else:
         encoder_hidden_states = model.text_encoder(input_ids)[0].to(dtype=model.dtype)
 
@@ -456,7 +412,7 @@ def DDIM_sample_textcond(
         latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
         latent_model_input = model.scheduler.scale_model_input(latent_model_input, t)
 
-        (down_block_res_samples, mid_block_res_sample),_,_,_ = model.controlnet(
+        (down_block_res_samples, mid_block_res_sample),_,_ = model.controlnet(
                     latent_model_input,
                     t,
                     encoder_hidden_states=encoder_hidden_states,
