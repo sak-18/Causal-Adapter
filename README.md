@@ -23,6 +23,7 @@
 
 ## News
 
+- **2026-05-29** — SD1.5: shipped reproducible counterfactual inference notebooks (Pendulum / CelebA / ADNI) sharing a common `inference_utils.py`. See [`causal-adapter-sd15/README.md`](./causal-adapter-sd15/README.md#inference-counterfactual-notebooks).
 - **2026-05-28** — Open-sourced Causal-Adapter training code across three datasets (Pendulum, ADNI, CelebA).
 - **2026-05-01** — [Causal-Adapter](https://icml.cc/virtual/2026/poster/61202) accepted for a poster presentation at **ICML 2026** 🔥.
 

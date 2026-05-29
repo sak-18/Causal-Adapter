@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-05-29
+
+### Added
+- SD1.5 counterfactual inference notebooks under `causal-adapter-sd15/notebook_benchmarks/`:
+  - `counterfactuals_pendulum.ipynb`
+  - `counterfactuals_celeba.ipynb`
+  - `counterfactuals_ADNI.ipynb`
+- Shared helper `causal-adapter-sd15/notebook_benchmarks/inference_utils.py` centralising pipeline assembly (ControlNet + SCM head + MCPL embeddings + DDIM scheduler).
+- README section documenting the inference workflow and the `MODEL_CACHE` / `LOGS_ROOT` configuration roots.
+
+### Changed
+- Replaced the five legacy `control_edit_*.ipynb` notebooks with the three dataset-aligned `counterfactuals_*.ipynb` above.
+- Notebooks now derive every path from two roots and add per-section comments (DDIM inversion, intervention sweep, attention maps).
+
+### Repository State
+- Main branch includes commits:
+  - `b526120` refactor(notebooks): consolidate counterfactual inference notebooks
+  - `715c01d` docs(notebooks): factor CONFIG paths into shared roots and explain steps
+
+### Testing
+- Each notebook re-validated end-to-end against its corresponding pretrained checkpoint (Pendulum 20k, CelebA 200k, ADNI 100k); all figure-producing cells render without errors.
+
 ## 2026-05-27
 
 ### Added

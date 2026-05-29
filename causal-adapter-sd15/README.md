@@ -84,6 +84,45 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
 The full set of tested commands (Pendulum / ADNI / CelebA-complex) lives in
 `test_commands.md`.
 
+## Inference (counterfactual notebooks)
+
+Once you have a trained Causal-Adapter run (a `controlnet-steps-*.safetensors`
++ matching `learned_embeds-steps-*.safetensors` pair, optionally an SCM
+checkpoint), the three notebooks under `notebook_benchmarks/` reproduce the
+DDIM-inversion / intervention / cross-attention figures used in the paper.
+
+| Notebook | Dataset |
+| --- | --- |
+| `notebook_benchmarks/counterfactuals_pendulum.ipynb` | Pendulum |
+| `notebook_benchmarks/counterfactuals_celeba.ipynb`   | CelebA (complex) |
+| `notebook_benchmarks/counterfactuals_ADNI.ipynb`     | ADNI |
+
+All three share `notebook_benchmarks/inference_utils.py`, which centralises
+the pipeline assembly (`Causal_ControlNetModel` load → SCM head load →
+adjacency mask → MCPL textual-inversion embeddings → `DDIMScheduler`
+configured for inversion). Only dataset-specific pieces (sample loading,
+intervention encoding, attention plotting) live in each notebook.
+
+To run one of them:
+
+1. Open the notebook in JupyterLab / VSCode.
+2. Edit the **Configuration** cell. Two roots drive every other path:
+   - `MODEL_CACHE` — local HuggingFace snapshot cache holding the frozen
+     SD1.5 / miniSD backbone.
+   - `LOGS_ROOT` — directory holding the training-run sub-folders produced
+     by `train.py` and the SCM pretraining runs from `SCM_modeling/`.
+
+   The notebook then derives `BASE_MODEL_PATH`, `RUN_DIR`, the
+   ControlNet / pseudo-token / SCM checkpoint paths, and the dataset root
+   from those two roots.
+3. Restart the kernel and run all cells.
+
+`inference_utils.py` ships with the same per-dataset metadata that
+`train.py` uses (adjacency masks, default training prompt, pseudo-word set,
+dataset-specific torchvision prefix), so training and inference stay in
+sync — when you add a new dataset to `train.py`, mirror the entry in
+`inference_utils.A_MATRICES` / `DATASET_PROMPTS`.
+
 ### Important defaults
 
 | Flag | Default | Notes |
