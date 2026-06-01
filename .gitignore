@@ -44,3 +44,5 @@ logs_mtx/
 lightning_logs/
 outputs/
 wandb/
+# SD3 training-time visualisation dumps (created by train_SD3.py)
+textcond/

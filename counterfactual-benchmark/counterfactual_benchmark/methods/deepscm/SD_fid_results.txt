@@ -1,2 +1,0 @@
-Minimality score: mean 0.304, std 0.036
-Prob 1: 0.03535111512959614, Prob 2: 0.9592932489451478

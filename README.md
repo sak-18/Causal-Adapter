@@ -38,30 +38,39 @@ benchmark used for evaluation.
 
 ## Repository Structure
 
-This repository is organized as a monorepo with three components:
+SD1.5 and SD3/Flux now share a single project layout and a single
+`diffusers/` install:
 
-| Directory | Purpose |
+| Path | Purpose |
 | --- | --- |
-| [`causal-adapter-sd15/`](./causal-adapter-sd15) | Stable Diffusion v1.5 implementation (training, datasets, SCM head). |
-| [`causal-adapter-sd3/`](./causal-adapter-sd3) | Stable Diffusion 3 / Flux implementation. |
-| [`counterfactual-benchmark/`](./counterfactual-benchmark) | Benchmark and evaluation pipeline. |
-
-Each component is self-contained and ships its own README with installation
-notes, dataset layout, and example commands.
+| `train.py` | SD1.5 training entrypoint. |
+| `train_SD3.py` | SD3 training entrypoint. |
+| `causal_datasets/` | Dataset adapters (CelebA-HQ, ADNI, MorphoMNIST, Pendulum, ...) — shared by both backbones. |
+| `causal_modules/` | ControlNet heads, DDIM/Flow modules (`ddim_modules.py`, `ddim_modules_sd3.py`, `ddim_modules_flux.py`), SCM pretraining, p2p edits. |
+| `SCM_modeling/` | Causal discovery (DAGMA, NoTEARS, SDCD) + SCM training. |
+| `notebook_benchmarks/` | Counterfactual inference notebooks (Pendulum / CelebA / ADNI / SD3 CelebA-HQ). |
+| `diffusers/` | Project fork of `diffusers` (0.36.0.dev0) with `Causal_ControlNetModel` and `Causal_SD3ControlNetModel`. |
+| `counterfactual-benchmark/` | Benchmark and evaluation pipeline. |
+| `test_commands.md` | SD1.5 reference commands. |
+| `commands_training_sd3.md` | SD3 reference commands. |
 
 ## Getting Started
 
-1. Pick a component above based on the diffusion backbone you target.
-2. Follow that component's README for environment setup, dataset preparation,
-   and example training/evaluation commands.
-3. Where required, install the local modified `diffusers` in editable mode:
+1. Install the shared `diffusers` fork in editable mode:
 
    ```bash
    pip install -e diffusers
    ```
 
-We recommend keeping a separate Python environment per component (SD1.5 vs
-SD3/Flux) to avoid dependency clashes.
+2. Make sure the project root is on `PYTHONPATH` so the patched
+   `Causal_ControlNetModel` can lazily import
+   `causal_modules.scm_pretraining.load_dataset_model`.
+
+3. Run training:
+   - SD1.5 — see `test_commands.md`.
+   - SD3 — see `commands_training_sd3.md`.
+
+4. Run inference notebooks under `notebook_benchmarks/`.
 
 ## Pretrained Weights
 
@@ -76,13 +85,22 @@ the per-component `.gitignore` files already exclude common formats
 
 ## Reproducibility
 
-- SD1.5 and SD3/Flux implementations are kept separate by design; their
-  training entry points, dataset adapters, and `diffusers` versions differ.
-- Hyperparameters, dataset splits, and tested commands are documented inside
-  each component's README and `test_commands.md`.
+- SD1.5 (`train.py`) and SD3 (`train_SD3.py`) share a single dataset/p2p
+  layer (`causal_datasets/`, `causal_modules/p2p_edits/`) and a single
+  `diffusers/` fork.
+- Hyperparameters, dataset splits, and tested commands live in
+  `test_commands.md` (SD1.5) and `commands_training_sd3.md` (SD3).
 - See [`CHANGELOG.md`](./CHANGELOG.md) for notable repository-level changes.
 
 ## Citation
 
-If you find this work useful, please cite our paper. Citation metadata is
-provided in [`CITATION.cff`](./CITATION.cff).
+If you find this work useful, please cite our paper.
+
+@inproceedings{tong2026causaladapter,
+  title     = {Causal-Adapter: Taming Text-to-Image Diffusion for Faithful Counterfactual Generation},
+  author    = {Tong, Lei and Liu, Zhihua and Lu, Chaochao and Oglic, Dino and Diethe, Tom and Teare, Philip and Tsaftaris, Sotirios A. and Jin, Chen},
+  booktitle = {Proceedings of the Forty-third International Conference on Machine Learning},
+  year      = {2026},
+  url       = {https://openreview.net/forum?id=si8F5lk6Kg},
+  note      = {arXiv:2509.24798}
+}

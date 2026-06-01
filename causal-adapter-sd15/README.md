@@ -151,7 +151,7 @@ profile your own setup.
 | Pendulum | 256 | 2 | fp32 | ~16 GB |6234MiB|
 | CelebA-complex | 256 | 2 | fp32 | ~16 GB |6234MiB|
 | ADNI | 256 | 16 (`grad_accum=2`) | fp32 | ~24 GB |6234MiB|
-| CelebA-HQ-simple | 512 | 2 | fp32 | ~24 GB |6234MiB|
+| CelebA-HQ (SD3) | 512 | 2 | bf16 | 36 GB |21072MiB|
 | Any of the above | 512 | 4 | fp16 / bf16 | ~24 GB |6234MiB|
 
 To shrink the footprint:

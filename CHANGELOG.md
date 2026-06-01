@@ -2,6 +2,50 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-06-01
+
+### Changed
+- Merged `causal-adapter-sd3/` into the unified project layout. SD1.5 and SD3
+  now share a single `diffusers/` install (sd3 fork, 0.36.0.dev0), a single
+  `causal_datasets/` package, and a single `causal_modules/p2p_edits/` package.
+- Promoted SD3 entrypoint to `train_SD3.py` at the repo root (alongside SD1.5
+  `train.py`).
+- Added `commands_training_sd3.md` (replaces sd3's `commands_training.txt`)
+  with portable `$SD3_MODEL_PATH` / `$DATASET_ROOT` placeholders.
+- Migrated `notebook_benchmarks/control_edit_celebahq_simple_SD3.ipynb` into
+  the shared notebook directory; paths are now configured via env vars at the
+  top of the notebook.
+
+### Added
+- `diffusers/src/diffusers/models/controlnets/controlnet_causal.py` — sd1.5
+  `Causal_ControlNetModel` ported into the new `controlnets/` package
+  structure; exported from the top-level `diffusers` namespace.
+- `diffusers/src/diffusers/pipelines/controlnet/pipeline_causal_controlnet.py`
+  — sd1.5 `StableDiffusionCausalControlNetPipeline` re-exported in the new
+  fork.
+- `causal_modules/ddim_modules_sd3.py`, `causal_modules/ddim_modules_flux.py`
+  — SD3/Flux-specific prompt/Flow utilities.
+- `causal_modules/p2p_edits/mcpl_utils_sd3.py` — SD3 variant of
+  `prompt_contrastive_loss` (handles the `RELATE` placeholder branch).
+- `utils_sd3.py` — SD3 train/val split + SCM metrics helpers.
+
+### Repository State
+- `causal-adapter-sd15/` and `causal-adapter-sd3/` directories are kept on
+  disk as read-only references until SD3 GPU smoke tests pass; they will be
+  removed once verified end-to-end.
+
+### Testing
+- diffusers smoke import: `Causal_ControlNetModel`,
+  `StableDiffusionCausalControlNetPipeline`, `Causal_SD3ControlNetModel`,
+  `StableDiffusion3InpaintPipeline_Adapter` all resolve in 0.36.0.dev0.
+- `train.py` (SD1.5) and `train_SD3.py` (SD3) module-level imports execute
+  without error on CPU.
+- `causal_datasets.TextualInversionDataset(dataset='celebahq_simple', ...)`
+  yields valid `pixel_values` / `input_ids` / `label` tensors with a local
+  CLIP tokenizer.
+- GPU end-to-end runs (training step / inference notebook) are pending on a
+  GPU node.
+
 ## 2026-05-29
 
 ### Added
