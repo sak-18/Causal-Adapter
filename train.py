@@ -11,8 +11,8 @@
 
 Trains the causal ControlNet head together with the MCPL pseudo-token
 embeddings on top of a frozen Stable Diffusion v1.5 / miniSD backbone. The
-script is invoked through ``accelerate`` (see ``test_commands.md`` and the
-README for example commands).
+script is invoked through ``accelerate`` (see ``scripts/adapter_training/``
+for ready-to-run shell wrappers).
 
 Public CLI surface (everything else has a sane default):
 

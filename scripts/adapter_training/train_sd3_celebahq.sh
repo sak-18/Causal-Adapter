@@ -1,15 +1,19 @@
-# SD3 Training Commands
+#!/usr/bin/env bash
+# SD3 Causal-Adapter training on CelebA-HQ-simple (7 attributes).
+# Edit the variables below to point at your local checkpoints / dataset.
 
-## CelebA-HQ (simple, 7 attributes)
+# <local SD3-medium snapshot folder, OR "stabilityai/stable-diffusion-3-medium-diffusers">
+PRETRAINED_PATH="<set me>"
 
-```bash
+# <root of the counterfactual-benchmark CelebA-HQ datasets> can be None if you don't want to use it.
+DATA_ROOT="<set me>"
 
 CUDA_VISIBLE_DEVICES=0 accelerate launch --num_processes=1 --num_machines=1 train_SD3.py \
     --output_name "causal-adapter" \
     --output_dir "./logs/logs_celebahq_simple_all" \
-    --pretrained_model_name_or_path "/projects/dsai/se_aieng/cai/causal/workspace/causaledit/MCPL-diffuser-flux/.cache/huggingface/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/5fe80140eec27f0a4e1d02ea2b0b31d71ac38f75" \
+    --pretrained_model_name_or_path "${PRETRAINED_PATH}" \
+    --train_data_dir "${DATA_ROOT}" \
     --dataset 'celebahq_simple' \
-    --train_data_dir "/projects/dsai/se_aieng/cai/causal/workspace/causaledit/counterfactual-benchmark/datasets" \
     --learnable_property "object" \
     --resolution 512 \
     --train_batch_size 2 \
@@ -33,4 +37,3 @@ CUDA_VISIBLE_DEVICES=0 accelerate launch --num_processes=1 --num_machines=1 trai
     --T5_injection "False" \
     --gradient_checkpointing \
     --use_8bit_adam
-```

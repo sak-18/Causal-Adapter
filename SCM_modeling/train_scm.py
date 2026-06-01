@@ -12,7 +12,7 @@ Example::
     python SCM_modeling/train_scm.py --dataset pendulum --device cpu \\
         --data-root /path/to/causal_data2
 
-See ``SCM_modeling/scripts/`` for ready-to-run shell wrappers.
+See ``scripts/scm_training/`` for ready-to-run shell wrappers.
 """
 
 import argparse

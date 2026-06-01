@@ -11,7 +11,7 @@
 
 Trains the SD3 causal ControlNet head together with MCPL pseudo-token
 embeddings on top of a frozen Stable Diffusion 3 backbone. The script is
-invoked through ``accelerate`` (see ``commands_training_sd3.md``).
+invoked through ``accelerate`` (see ``scripts/adapter_training/train_sd3_celebahq.sh``).
 
 Public CLI surface (everything else has a sane default):
 
