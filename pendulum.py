@@ -76,7 +76,7 @@ for i in range(-40,44):#pendulum
           plt.savefig('./pendulum/test/a_' + str(i) + '_' + str(j) + '_' + str(shade) + '_' + str(mid) +'.png',dpi=96)
           count = 0
         else:
-          plt.savefig('.pendulum/train/a_' + str(i) + '_' + str(j) + '_' + str(shade) + '_' + str(mid) +'.png',dpi=96)
+          plt.savefig('./pendulum/train/a_' + str(i) + '_' + str(j) + '_' + str(shade) + '_' + str(mid) +'.png',dpi=96)
 
         plt.clf()
         count += 1

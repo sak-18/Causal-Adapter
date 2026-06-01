@@ -7,68 +7,81 @@
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
+"""Causal-Adapter (Stable Diffusion 3) training entry point.
 
-import argparse
-import logging
-import math
+Trains the SD3 causal ControlNet head together with MCPL pseudo-token
+embeddings on top of a frozen Stable Diffusion 3 backbone. The script is
+invoked through ``accelerate`` (see ``commands_training_sd3.md``).
+
+Public CLI surface (everything else has a sane default):
+
+* ``--pretrained_model_name_or_path``: HF model id *or* local path to the
+  Stable Diffusion 3 checkpoint to load.
+* ``--train_data_dir``: dataset root, required.
+* ``--dataset``: one of ``celebahq_simple``, ``celeA_complex``,
+  ``pendulum``, ``ADNI``, ``MorphoMNIST``, ... (any key registered in
+  ``causal_datasets/_adapters/__init__.py``).
+* ``--placeholder_string`` / ``--presudo_words`` / ``--presudo_words_infonce``:
+  MCPL pseudo-token configuration.
+"""
+
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+import argparse
+import copy
+import datetime
+import itertools
+import logging
+import math
 import random
 import shutil
 import warnings
 from contextlib import nullcontext
 from pathlib import Path
-import pytorch_lightning.loggers
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import PIL
 import safetensors
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
-import transformers
-from accelerate import Accelerator
-from accelerate.logging import get_logger
-from accelerate.utils import DistributedDataParallelKwargs,ProjectConfiguration, set_seed
-from huggingface_hub import create_repo, upload_folder
-import accelerate
-import itertools
-# TODO: remove and import from diffusers.utils when the new version of diffusers is released
 from packaging import version
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
-from causal_datasets import TextualInversionDataset
-import datetime
-import diffusers
-import pandas as pd
-from transformers import CLIPTokenizer, PretrainedConfig, T5TokenizerFast,CLIPTextModel,T5EncoderModel
 
-from diffusers import (
-    AutoencoderKL,
-    FlowMatchEulerDiscreteScheduler,
-    SD3ControlNetModel,
-    SD3Transformer2DModel,
-    StableDiffusion3ControlNetPipeline,
-)
-from diffusers.pipelines import StableDiffusion3InpaintPipeline_Adapter
+import accelerate
+from accelerate import Accelerator
+from accelerate.logging import get_logger
+from accelerate.utils import DistributedDataParallelKwargs, ProjectConfiguration, set_seed
+from huggingface_hub import create_repo, upload_folder
+import transformers
+from transformers import CLIPTokenizer, PretrainedConfig, T5TokenizerFast, CLIPTextModel, T5EncoderModel
+
+import diffusers
+from diffusers import AutoencoderKL, FlowMatchEulerDiscreteScheduler, SD3Transformer2DModel
 from diffusers.models.controlnets.controlnet_sd3_causal import Causal_SD3ControlNetModel
 from diffusers.optimization import get_scheduler
+from diffusers.pipelines import StableDiffusion3InpaintPipeline_Adapter
+from diffusers.training_utils import (
+    cast_training_params,
+    compute_density_for_timestep_sampling,
+    compute_loss_weighting_for_sd3,
+)
 from diffusers.utils import check_min_version, is_wandb_available
 from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_card
-import matplotlib.pyplot as plt
-import copy
-from diffusers.utils.import_utils import is_torch_npu_available, is_xformers_available
-from diffusers.training_utils import compute_density_for_timestep_sampling, free_memory,cast_training_params,compute_loss_weighting_for_sd3
+from diffusers.utils.import_utils import is_xformers_available
 from diffusers.utils.torch_utils import is_compiled_module
-from causal_modules.ddim_modules_sd3 import tokenize_prompt,encode_prompt_pai
+
+from causal_datasets import TextualInversionDataset
+from causal_modules.ddim_modules_sd3 import tokenize_prompt, encode_prompt_pai
+
 if is_wandb_available():
-    import wandb
+    import wandb  # noqa: F401  (imported for side effect / availability check)
 
 
 if version.parse(version.parse(PIL.__version__).base_version) >= version.parse("9.1.0"):
@@ -87,10 +100,21 @@ else:
         "lanczos": PIL.Image.LANCZOS,
         "nearest": PIL.Image.NEAREST,
     }
-# ------------------------------------------------------------------------------
+
+
+# Errors out if the locally-installed diffusers is older than required.
+check_min_version("0.31.0.dev0")
+
+logger = get_logger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Helpers (text encoder loading is SD3-specific: CLIP1 + CLIP2 + T5)
+# ---------------------------------------------------------------------------
 
 # Copied from dreambooth sd3 example
-def load_text_encoders(class_one, class_two, class_three,args):
+def load_text_encoders(class_one, class_two, class_three, args):
+    """Load the three SD3 text encoders (CLIP-1, CLIP-2, T5) at once."""
     text_encoder_one = class_one.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision, variant=args.variant
     )
@@ -102,10 +126,12 @@ def load_text_encoders(class_one, class_two, class_three,args):
     )
     return text_encoder_one, text_encoder_two, text_encoder_three
 
+
 # Copied from dreambooth sd3 example
 def import_model_class_from_model_name_or_path(
     pretrained_model_name_or_path: str, revision: str, subfolder: str = "text_encoder"
 ):
+    """Resolve the HF text-encoder class to instantiate from model config."""
     text_encoder_config = PretrainedConfig.from_pretrained(
         pretrained_model_name_or_path, subfolder=subfolder, revision=revision
     )
@@ -121,17 +147,6 @@ def import_model_class_from_model_name_or_path(
     else:
         raise ValueError(f"{model_class} is not supported.")
 
-
-# Will error if the minimal version of diffusers is not installed. Remove at your own risks.
-check_min_version("0.31.0.dev0")
-
-logger = get_logger(__name__)
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-import numpy as np
-import matplotlib.pyplot as plt
 
 def save_images_grid(observed_img, images_list, grid_size, save_path):
     """
@@ -214,78 +229,6 @@ These are textual inversion adaption weights for {base_model}. You can find some
     model_card.save(os.path.join(repo_folder, "README.md"))
 
 
-# def log_validation(controlnet, text_encoder, tokenizer, unet, vae, args, accelerator, weight_dtype, epoch):
-#     logger.info(
-#         f"Running validation... \n Generating {args.num_validation_images} images with prompt:"
-#         f" {args.validation_prompt}."
-#     )
-#     # create pipeline (note: unet and vae are loaded again in float32)
-#     controlnet.eval()
-#     if args.mcpl_training:
-#         text_encoder.eval()
-#     pipeline = StableDiffusionCausalControlNetPipeline.from_pretrained(
-#         args.pretrained_model_name_or_path,
-#         vae=vae,
-#         text_encoder=accelerator.unwrap_model(text_encoder),
-#         tokenizer=tokenizer,
-#         unet=unet,
-#         controlnet=accelerator.unwrap_model(controlnet),
-#         safety_checker=None,
-#         revision=args.revision,
-#         variant=args.variant,
-#         torch_dtype=weight_dtype,
-#     )
-#     pipeline.safety_checker = None
-#     pipeline.requires_safety_checker = False
-#     pipeline.scheduler = UniPCMultistepScheduler.from_config(pipeline.scheduler.config)
-#     pipeline = pipeline.to(accelerator.device)
-#     pipeline.set_progress_bar_config(disable=True)
-    
-#     def random_image_path(dataset_path='<dataset_path>'):
-#         # List all file paths in the dataset directory
-#         if args.dataset == 'chexpert':
-#             image_paths = ['/home/jovyan/fcvm-data-volume/kzzr229/workspace/causal_datasets/cheXpert/sampling_100/patient06994/study15/view1_frontal.jpg']
-#         else:
-#             image_paths = [os.path.join(dataset_path, file_path) for file_path in os.listdir(dataset_path)]
-#         # Randomly choose one image path
-#         random_path = random.choice(image_paths)
-#         print('random picked ', random_path)
-#         return random_path
-#     img_path = random_image_path(args.train_data_dir)
-#     #img_path = "<dataset_path>/a_9_69_6_7.png"
-#     #control_image = load_image(img_path)
-#     noise_array = np.random.randint(0, 256, (16, 16, 3), dtype=np.uint8)
-#     control_image = Image.fromarray(noise_array, mode='RGB')
-#     conditioning_image_transforms = transforms.Compose(
-#             [
-#                 transforms.Resize((args.resolution,args.resolution), interpolation=transforms.InterpolationMode.BILINEAR),
-#             ]
-#     )
-#     control_image = conditioning_image_transforms(control_image)
-#     # run inference
-#     #generator = None if args.seed is None else torch.Generator(device=accelerator.device).manual_seed(args.seed)
-#     generator = torch.Generator(device=accelerator.device).manual_seed(0)
-#     image_lists = []
-#     range_len = 2
-    
-#     for inter_id in range(0,args.num_causal_concepts,1):
-#         images = []
-#         inter_value  = 0
-#         for i in range(range_len): 
-#             interved_image = pipeline(
-#             args.validation_prompt, num_inference_steps=50, generator=generator, image=control_image,height=args.resolution,width=args.resolution,guidance_scale=1,training=False,intervention_indx=inter_id,intervention_values=inter_value,num_concept= args.num_causal_concepts
-#             ).images[0]
-            
-#             images.append(interved_image)
-#             inter_value+=1
-
-#         image_lists.append([np.asarray(img) for img in images])
-    
-#     del pipeline
-#     torch.cuda.empty_cache()
-#     return control_image,image_lists
-
-
 def save_progress(
     text_encoders,
     presudo_token_ids,
@@ -344,6 +287,7 @@ def save_progress(
         torch.save(learned_embeds_dict_two, file_two)
         torch.save(learned_embeds_dict_three, file_three)
 
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -353,6 +297,12 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
     parser.add_argument(
@@ -786,22 +736,27 @@ def parse_args():
 
     return args
 
+
+# ---------------------------------------------------------------------------
+# Dataloader collate
+# ---------------------------------------------------------------------------
+
 def collate_fn(examples):
+    """Stack ``input_ids`` / ``pixel_values`` / ``label`` into a batched dict."""
     pixel_values = torch.stack([example["pixel_values"] for example in examples])
     pixel_values = pixel_values.to(memory_format=torch.contiguous_format).float()
-
-    # conditioning_pixel_values = torch.stack([example["conditioning_pixel_values"] for example in examples])
-    # conditioning_pixel_values = conditioning_pixel_values.to(memory_format=torch.contiguous_format).float()
-
     input_ids = torch.stack([example["input_ids"] for example in examples])
     label = torch.stack([example["label"] for example in examples])
     return {
         "pixel_values": pixel_values,
-        #"conditioning_pixel_values": conditioning_pixel_values,
         "input_ids": input_ids,
-        "label":label
+        "label": label,
     }
 
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main():
     args = parse_args()
@@ -1568,9 +1523,6 @@ def main():
 
     accelerator.end_training()
 
-
-def check_elements_exist(A, B):
-    assert all(elem in B for elem in A), "Error: Not all preduso words exist in placeholder_string."
 
 if __name__ == "__main__":
     main()
