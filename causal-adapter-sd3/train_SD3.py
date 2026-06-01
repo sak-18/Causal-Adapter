@@ -1166,43 +1166,7 @@ def main():
         random_prompt_template = args.random_prompt_template
     )
     # balanced sampler
-    if args.dataset in ['celeA_complex']:
-        imglabel = train_dataset.imglabel
-        no_beard = imglabel[:, -2]
-        bald = imglabel[:, -1]
-        combined_classes = no_beard * 2 + bald  # values: 0, 1, 2, 3
-
-        # Compute the class distribution
-        class_counts = torch.bincount(combined_classes.long())
-        # tensor([ 25301,   1690, 133756,   2023])
-        class_counts = np.array([25301,1690,133756,2023])
-        class_weights = 1.0 / class_counts
-        # Assign weight to each sample based on its class
-        sample_weights = class_weights[combined_classes.long()]
-        sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(train_dataset), replacement=True)
-        #sampler = BalancedAttributeSampler(train_dataset.imglabel,attr_indices, batch_size=args.train_batch_size)
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=args.train_batch_size,sampler=sampler, num_workers=args.dataloader_num_workers,collate_fn=collate_fn,drop_last=False
-        )
-    elif args.dataset in ['celebahq_simple']:
-        imglabel = train_dataset.imglabel
-        glass_label = imglabel[:, 1]
-        class_counts = torch.bincount(glass_label.long())
-        class_weights = 1.0 / class_counts.float()
-        # tempered inverse-frequency weights
-        alpha = 0.5   # <-- your "rate": 0 = uniform, 1 = full inverse-freq
-        class_weights = (1.0 / class_counts.float()) ** alpha
-        # per-sample weights
-        sample_weights = class_weights[glass_label.long()]
-        sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(train_dataset), replacement=True)
-        #sampler = BalancedAttributeSampler(train_dataset.imglabel,attr_indices, batch_size=args.train_batch_size)
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=args.train_batch_size,sampler=sampler, num_workers=args.dataloader_num_workers,collate_fn=collate_fn,drop_last=False
-        )
-    else:
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=args.train_batch_size, shuffle=True, num_workers=args.dataloader_num_workers,collate_fn=collate_fn,drop_last=False
-        )
+    
     if args.validation_epochs is not None:
         warnings.warn(
             f"FutureWarning: You are doing logging with validation_epochs={args.validation_epochs}."
