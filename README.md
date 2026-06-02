@@ -24,12 +24,14 @@
 
 ## News
 
-- [ ] **TBD** — Release pretrained weights (Causal-Adapter heads, SCMs, MCPL embeddings) on [`LeiTong/Causal-Adapter`](https://huggingface.co/LeiTong/Causal-Adapter).
-- [ ] **TBD** — Open-source the benchmark / evaluation pipeline under `counterfactual-benchmark/` (Effectiveness / Composition / Reverse / FID).
-- [x] **2026-06-01** — SD1.5 and SD3 codebases unified into a single project root with a shared `diffusers/` fork (0.36.0.dev0).
-- [x] **2026-05-29** — SD1.5: shipped reproducible counterfactual inference notebooks (Pendulum / CelebA / ADNI) sharing a common `inference_utils.py`.
-- [x] **2026-05-28** — Open-sourced Causal-Adapter training code across Pendulum, ADNI, and CelebA.
-- [x] **2026-05-01** — [Causal-Adapter](https://icml.cc/virtual/2026/poster/61202) accepted as a poster at **ICML 2026**.
+## News
+
+- ⏳ **TBD** — Release pretrained weights (Causal-Adapter heads, SCMs, MCPL embeddings) on [`LeiTong/Causal-Adapter`](https://huggingface.co/LeiTong/Causal-Adapter).
+- ⏳ **TBD** — Open-source the benchmark / evaluation pipeline under `counterfactual-benchmark/` (Effectiveness / Composition / Reverse / FID).
+- ✅ **2026-06-01** — SD1.5 and SD3 codebases unified into a single project root with a shared `diffusers/` fork (0.36.0.dev0).
+- ✅ **2026-05-29** — SD1.5: shipped reproducible counterfactual inference notebooks (Pendulum / CelebA / ADNI) sharing a common `inference_utils.py`.
+- ✅ **2026-05-28** — Open-sourced Causal-Adapter training code across Pendulum, ADNI, and CelebA.
+- ✅ **2026-05-01** — [Causal-Adapter](https://icml.cc/virtual/2026/poster/61202) accepted as a poster at **ICML 2026**.
 
 ## Overview
 
