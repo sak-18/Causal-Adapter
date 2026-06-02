@@ -152,10 +152,10 @@ attention-map figures used in the paper.
 
 | Notebook | Backbone | Dataset | Base model | Pretrained Causal-Adapter |
 | --- | --- | --- | --- | --- |
-| `counterfactuals_pendulum.ipynb` | SD1.5 | Pendulum | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 pendulum](https://huggingface.co/LeiTong/Causal-Adapter/tree/pendulum) |
-| `counterfactuals_celeba.ipynb` | SD1.5 | CelebA (complex) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 celeba](https://huggingface.co/LeiTong/Causal-Adapter/tree/celeba) |
-| `counterfactuals_ADNI.ipynb` | SD1.5 | ADNI | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 ADNI](https://huggingface.co/LeiTong/Causal-Adapter/tree/ADNI) |
-| `counterfactuals_celebahq_SD3.ipynb` | SD3 | CelebA-HQ (simple) | [🤗 stable-diffusion-3](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [🤗 celebhq_sd3](https://huggingface.co/LeiTong/Causal-Adapter/tree/celebhq_sd3) |
+| `counterfactuals_pendulum.ipynb` | SD1.5 | Pendulum | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_celeba.ipynb` | SD1.5 | CelebA (complex) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_ADNI.ipynb` | SD1.5 | ADNI | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_celebahq_SD3.ipynb` | SD3 | CelebA-HQ (simple) | [🤗 stable-diffusion-3](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [[🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
 
 
 Each notebook starts with a configuration cell. The example below shows the main
