@@ -24,8 +24,6 @@
 
 ## News
 
-## News
-
 - ⏳ **TBD** — Release pretrained weights (Causal-Adapter heads, SCMs, MCPL embeddings) on [`LeiTong/Causal-Adapter`](https://huggingface.co/LeiTong/Causal-Adapter).
 - ⏳ **TBD** — Open-source the benchmark / evaluation pipeline under `counterfactual-benchmark/` (Effectiveness / Composition / Reverse / FID).
 - ✅ **2026-06-01** — SD1.5 and SD3 codebases unified into a single project root with a shared `diffusers/` fork (0.36.0.dev0).
