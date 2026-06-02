@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Base class for textual-inversion dataset adapters."""
 
 from __future__ import annotations

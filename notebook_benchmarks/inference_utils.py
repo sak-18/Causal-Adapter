@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Shared inference helpers for the Causal-Adapter (SD1.5) benchmark notebooks.
 
 The three counterfactual notebooks (``counterfactuals_pendulum``,

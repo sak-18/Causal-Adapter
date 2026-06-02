@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Textual-inversion dataset dispatcher.
 
 The :class:`TextualInversionDataset` here is a thin wrapper that picks the

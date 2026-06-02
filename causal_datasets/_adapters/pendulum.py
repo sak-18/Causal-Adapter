@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Pendulum dataset adapter (CausalVAE-style images named by their attributes).
 
 Each image filename encodes the four pendulum attribute values separated by

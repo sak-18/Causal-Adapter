@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Unified Stable-Diffusion / DeepSCM counterfactual evaluation script.
 
 Evaluates the Causal-Adapter SD generator with the benchmark metrics

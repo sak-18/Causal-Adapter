@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """CelebA-HQ adapter for the textual-inversion pipeline.
 
 Uses :class:`CelebAHQ` (the local extension of torchvision's CelebA dataset).

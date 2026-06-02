@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """ADNI adapter for the textual-inversion pipeline.
 
 Loads ADNI MRI slices via :func:`load_data` and joins them with ADNIMERGE

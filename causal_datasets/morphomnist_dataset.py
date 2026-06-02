@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Morpho-MNIST dataset loader.
 
 Morpho-MNIST is MNIST augmented with morphological metrics (thickness,

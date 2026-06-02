@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """CelebA-HQ dataset wrapper.
 
 Extends ``torchvision.datasets.CelebA`` so the high-resolution CelebAMask-HQ

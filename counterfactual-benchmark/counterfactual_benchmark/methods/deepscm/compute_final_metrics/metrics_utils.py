@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Shared helpers for turning the raw ``final_results.pkl`` files written by
 ``evaluate_SD_DSCM.py`` into the final quantitative tables.
 

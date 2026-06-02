@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Morpho-MNIST adapter for the textual-inversion pipeline.
 
 Loads the IDX-format images and the per-image metrics CSV via

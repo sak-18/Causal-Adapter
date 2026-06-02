@@ -230,3 +230,29 @@ If you find this work useful, please cite our paper:
   note      = {arXiv:2509.24798}
 }
 ```
+
+## License
+
+Original code in this repository is released under the **Apache License 2.0**:
+
+```
+Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+```
+
+Source files authored by us carry this SPDX header. This repository also builds
+on third-party code, which retains its original license and copyright:
+
+| Component | Source | License |
+|---|---|---|
+| `diffusers/` | [huggingface/diffusers](https://github.com/huggingface/diffusers) (vendored fork) | Apache-2.0 |
+| `train.py`, `train_SD3.py` | HuggingFace `diffusers` training scripts (modified) | Apache-2.0 |
+| `causal_modules/p2p_edits/{ptp_utils,seq_aligner,p2p_ldm_utils}.py` | [google/prompt-to-prompt](https://github.com/google/prompt-to-prompt) (modified) | Apache-2.0 |
+| `causal_modules/sdcd_modules.py`, `SCM_modeling/causal_discovery/**` | DCDI / DCDFG / NOTEARS / DAGMA reference implementations | MIT / authors' licenses |
+| `counterfactual-benchmark/` | [gulnazaki/counterfactual-benchmark](https://github.com/gulnazaki/counterfactual-benchmark) (NeurIPS 2024, modified) | MIT |
+| `pendulum.py` | Huawei Technologies Co., Ltd. | MIT |
+
+Files derived from upstream sources keep the upstream copyright header; where we
+made substantive changes we prepend a `Modifications Copyright AstraZeneca` line
+above the original header. Vendored upstream code (e.g. `diffusers/`) is left
+unmodified and is **not** relicensed.

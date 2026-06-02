@@ -1,3 +1,6 @@
+# Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Shared path bootstrap for the Causal-Adapter Stable-Diffusion evaluation scripts.
 
 Historically every ``evaluate_SD*`` script started with a block such as::
