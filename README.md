@@ -14,7 +14,7 @@
   <a href="https://arxiv.org/abs/2509.24798"><img src="https://img.shields.io/badge/arXiv-2509.24798-b31b1b.svg" alt="arXiv"/></a>
   <a href="https://huggingface.co/LeiTong/Causal-Adapter"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Weights-ffd21e.svg" alt="Hugging Face weights"/></a>
   <a href="#license"><img src="https://img.shields.io/badge/License-Apache%202.0-3da639.svg" alt="License: Apache 2.0"/></a>
-  <img src="https://img.shields.io/badge/diffusers-0.36.0-ff9d00.svg" alt="diffusers 0.36.0"/>
+  <img src="https://img.shields.io/badge/diffusers-0.36.0-ffd21e.svg" alt="diffusers 0.36.0"/>
   <img src="https://img.shields.io/badge/PyTorch-2.4.1-ee4c2c.svg" alt="PyTorch 2.4.1"/>
 </p>
 
