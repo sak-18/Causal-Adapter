@@ -152,16 +152,11 @@ attention-map figures used in the paper.
 
 | Notebook | Backbone | Dataset | Base model | Pretrained Causal-Adapter |
 | --- | --- | --- | --- | --- |
-| `counterfactuals_pendulum.ipynb` | SD1.5 | Pendulum | [🤗 lambdalabs/miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [tree/pendulum](https://huggingface.co/LeiTong/Causal-Adapter/tree/pendulum) |
-| `counterfactuals_celeba.ipynb` | SD1.5 | CelebA (complex) | [🤗 lambdalabs/miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [tree/celeba](https://huggingface.co/LeiTong/Causal-Adapter/tree/celeba) |
-| `counterfactuals_ADNI.ipynb` | SD1.5 | ADNI | [🤗 lambdalabs/miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [tree/ADNI](https://huggingface.co/LeiTong/Causal-Adapter/tree/ADNI) |
-| `counterfactuals_celebahq_SD3.ipynb` | SD3 | CelebA-HQ (simple) | [🤗 stabilityai/stable-diffusion-3-medium-diffusers](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [tree/celebhq_sd3](https://huggingface.co/LeiTong/Causal-Adapter/tree/celebhq_sd3) |
+| `counterfactuals_pendulum.ipynb` | SD1.5 | Pendulum | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 pendulum](https://huggingface.co/LeiTong/Causal-Adapter/tree/pendulum) |
+| `counterfactuals_celeba.ipynb` | SD1.5 | CelebA (complex) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 celeba](https://huggingface.co/LeiTong/Causal-Adapter/tree/celeba) |
+| `counterfactuals_ADNI.ipynb` | SD1.5 | ADNI | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 ADNI](https://huggingface.co/LeiTong/Causal-Adapter/tree/ADNI) |
+| `counterfactuals_celebahq_SD3.ipynb` | SD3 | CelebA-HQ (simple) | [🤗 stable-diffusion-3](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [🤗 celebhq_sd3](https://huggingface.co/LeiTong/Causal-Adapter/tree/celebhq_sd3) |
 
-The three SD1.5 notebooks share `notebook_benchmarks/inference_utils.py`,
-which centralises pipeline assembly (`Causal_ControlNetModel` load → SCM head
-load → adjacency mask → textual-inversion embeddings → `DDIMScheduler`
-configured for inversion). The SD3 notebook follows the same configuration
-pattern.
 
 Each notebook starts with a configuration cell. The example below shows the main
 paths required to run the CelebA counterfactual generation notebook:
@@ -230,26 +225,10 @@ If you find this work useful, please cite our paper:
 
 ## License
 
-Original code in this repository is released under the **Apache License 2.0**:
-
-```
-Copyright AstraZeneca UK Ltd. or its affiliates. All Rights Reserved.
-SPDX-License-Identifier: Apache-2.0
-```
-
-Source files authored by us carry this SPDX header. This repository also builds
-on third-party code, which retains its original license and copyright:
-
-| Component | Source | License |
-|---|---|---|
-| `diffusers/` | [huggingface/diffusers](https://github.com/huggingface/diffusers) (vendored fork) | Apache-2.0 |
-| `train.py`, `train_SD3.py` | HuggingFace `diffusers` training scripts (modified) | Apache-2.0 |
-| `causal_modules/p2p_edits/{ptp_utils,seq_aligner,p2p_ldm_utils}.py` | [google/prompt-to-prompt](https://github.com/google/prompt-to-prompt) (modified) | Apache-2.0 |
-| `causal_modules/sdcd_modules.py`, `SCM_modeling/causal_discovery/**` | DCDI / DCDFG / NOTEARS / DAGMA reference implementations | MIT / authors' licenses |
-| `counterfactual-benchmark/` | [gulnazaki/counterfactual-benchmark](https://github.com/gulnazaki/counterfactual-benchmark) (NeurIPS 2024, modified) | MIT |
-| `pendulum.py` | Huawei Technologies Co., Ltd. | MIT |
-
-Files derived from upstream sources keep the upstream copyright header; where we
-made substantive changes we prepend a `Modifications Copyright AstraZeneca` line
-above the original header. Vendored upstream code (e.g. `diffusers/`) is left
-unmodified and is **not** relicensed.
+Our original code is released under **Apache 2.0** (`Copyright AstraZeneca UK
+Ltd. or its affiliates`). Third-party code — including
+[`diffusers`](https://github.com/huggingface/diffusers),
+[prompt-to-prompt](https://github.com/google/prompt-to-prompt),
+[counterfactual-benchmark](https://github.com/gulnazaki/counterfactual-benchmark),
+and the DCDI / NOTEARS / DAGMA implementations — keeps its original license and
+copyright header.
