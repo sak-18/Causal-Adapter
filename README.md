@@ -151,10 +151,10 @@ attention-map figures used in the paper.
 
 | Notebook | Backbone | Dataset | Base model | Pretrained Causal-Adapter |
 | --- | --- | --- | --- | --- |
-| `counterfactuals_pendulum.ipynb` | SD1.5 | Pendulum | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
-| `counterfactuals_celeba.ipynb` | SD1.5 | CelebA (complex) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
-| `counterfactuals_ADNI.ipynb` | SD1.5 | ADNI | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
-| `counterfactuals_celebahq_SD3.ipynb` | SD3 | CelebA-HQ (simple) | [🤗 stable-diffusion-3](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_pendulum.ipynb` | SD1.5 | [Pendulum](https://github.com/LeiTong02/Causal-Adapter/blob/main/pendulum.py) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_celeba.ipynb` | SD1.5 | [CelebA](https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_ADNI.ipynb` | SD1.5 | [ADNI](https://github.com/gulnazaki/counterfactual-benchmark) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_celebahq_SD3.ipynb` | SD3 | [CelebA-HQ](https://github.com/switchablenorms/CelebAMask-HQ) | [🤗 stable-diffusion-3](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
 
 
 Each notebook starts with a configuration cell. The example below shows the main
