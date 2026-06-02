@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kzzr229-pend-reg1
+  name: kzzr229-contrastive-step3
   namespace: fcvm
 spec:
   ttlSecondsAfterFinished: 10
@@ -64,41 +64,29 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd 
-              accelerate launch causal_discovery.py  --output_name "accu100_DAG3_warmup_lr5e04_mixnorm" \
-                --output_dir "./logs_mtx/logs_morphomnist_all" \
-                --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
-                --dataset 'MorphoMNIST' \
-                --train_data_dir "/counterfactual_benchmark/datasets/morphomnist/data/" \
-                --learnable_property "object" \
-                --resolution 256 \
-                --mixed_precision "no" \
-                --train_batch_size 50 \
-                --dataloader_num_workers 0 \
-                --gradient_accumulation_steps 1\
-                --max_train_steps 30000 \
-                --checkpointing_steps 999999 \
-                --learning_rate 5e-4 \
-                --lr_scheduler "constant" \
-                --lr_warmup_steps 0 \
-                --num_validation_images 1 \
-                --placeholder_string 'handwritten digit with different mor pho logy' \
-                --presudo_words 'handwritten,digit,with,different,mor,pho,logy' \
-                --concept_words "digit,logy" \
-                --mcpl_training "False" \
-                --mcpl_embedding_path "/logs/logs_morphomnist_all/2025-03-05T23-25-58-mcpl-all/learned_embeds-steps-6000.safetensors" \
-                
+              cd /counterfactual_benchmark/methods/deepscm
+              accelerate launch evaluate_SD_DSCM.py --dataset "celeA_complex" \
+                --metrics "minimality" \
+                --embeddings "vae" \
+                --bs 100 \
+                --guidance_scale 3.0 \
+                --num_steps 500 \
+                --NTI "False" \
+                --controlnet_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-200000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-200000.safetensors"
+
           resources:
             requests:
-              memory: "240Gi"
-              cpu: "20"
-              nvidia.com/gpu: 2
+              memory: "50Gi"
+              cpu: "5"
+              nvidia.com/gpu: 1
             limits:
-              memory: "240Gi"
-              cpu: "20"
-              nvidia.com/gpu: 2
+              memory: "50Gi"
+              cpu: "5"
+              nvidia.com/gpu: 1
       nodeSelector:
         instance-type: p4d.24xlarge
+        kubernetes.io/hostname: ip-10-201-11-10.emea.astrazeneca.net
       tolerations:
       - key: "as_gpu_p4d_24xlarge_reserved_ns"
         operator: "Equal"

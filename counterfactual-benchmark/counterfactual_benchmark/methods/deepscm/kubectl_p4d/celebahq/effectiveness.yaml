@@ -66,14 +66,14 @@ spec:
               nvidia-smi
               echo "-----training job" 
               cd /counterfactual_benchmark/methods/deepscm
-              accelerate launch evaluate_SD_DSCM.py --dataset "celebahq_simple" \
+              accelerate launch evaluate_SD_DSCM.py --anti-classifier --dataset "celebahq_simple" \
                 --metrics "effectiveness" \
                 --embeddings "lpips" \
                 --bs 100 \
                 --guidance_scale 2.0 \
                 --num_steps 100 \
                 --NTI "False" \
-                --causalnet_path "/logs/logs_celebahq_simple_all/2025-10-07T14-56-05-controlnet_textcond_constrastive_7attrsgeneration_text_global_after/controlnet-steps-200000.safetensors" \
+                --controlnet_path "/logs/logs_celebahq_simple_all/2025-10-07T14-56-05-controlnet_textcond_constrastive_7attrsgeneration_text_global_after/controlnet-steps-200000.safetensors" \
                 --mcpl_embedding_path "/logs/logs_celebahq_simple_all/2025-10-07T14-56-05-controlnet_textcond_constrastive_7attrsgeneration_text_global_after/learned_embeds-steps-200000.safetensors"
 
           resources:

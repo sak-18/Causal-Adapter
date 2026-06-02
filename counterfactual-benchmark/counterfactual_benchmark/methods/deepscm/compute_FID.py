@@ -1,3 +1,13 @@
+import os
+
+# Path bootstrap (must run before any first-party import). See _paths.py.
+from _paths import bootstrap, REPO_ROOT, DEEPSCM_CONFIG_DIR
+bootstrap()
+# Trained-causalnet weights / logs now live at the project root (the old
+# `causal-adapter-sd15` sub-repo was merged into the root layout).
+SD15_ROOT = REPO_ROOT
+os.environ["NCCL_IGNORE_DISABLED_P2P"] = "1"
+
 import torch
 import numpy as np
 from typing import Dict, List
@@ -7,19 +17,9 @@ from model import SCM
 from tqdm import tqdm
 import torch.nn as nn
 from torch.utils.data import Dataset
-import os
-os.environ["NCCL_IGNORE_DISABLED_P2P"] = "1"
-import numpy as np
 import argparse
 import random
 import sys
-from pathlib import Path
-
-REPO_ROOT = Path(__file__).resolve().parents[4]
-DEEPSCM_CONFIG_DIR = REPO_ROOT / "counterfactual-benchmark" / "counterfactual_benchmark" / "methods" / "deepscm" / "configs"
-SD15_ROOT = REPO_ROOT / "causal-adapter-sd15"
-sys.path.append("../../")
-sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
 
 from causal_modules import ddim_modules
 import pickle
@@ -154,10 +154,10 @@ def parse_arguments():
     parser.add_argument("--embeddings", type=str, choices=["vgg", "clfs", "vae", "lpips", "clip"],default=["clip"], help="What embeddings to use for composition metric. "
                         "Supported: [vgg, clfs, vae, lpips, clip]. If not set, will compute distance on image space")
     parser.add_argument("--sampling-temperature", '-temp', type=float, default=0.1, help="Sampling temperature, used for VAE, HVAE.")
-    parser.add_argument("--causalnet_path", 
+    parser.add_argument("--controlnet_path", 
         type=str,
         default=None,
-        help="load causalnet")
+        help="Path to the trained Causal-ControlNet checkpoint")
     parser.add_argument("--mcpl_embedding_path", 
         type=str,
         default=None,
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     print(args)
     base_model_path = os.environ.get("CAUSAL_ADAPTER_SD15_BASE_MODEL", "lambdalabs/miniSD-diffusers")
-    controlnet_path = args.causalnet_path
+    controlnet_path = args.controlnet_path
     mcpl_embedding_path = args.mcpl_embedding_path
     accelerator = Accelerator()
     controlnet = Causal_ControlNetModel.from_pretrained(controlnet_path,torch_dtype=torch.float32)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         prompt = 'a human of @ and * and & and !'
         presudo_words= '@,*,&,!'
         if cond_path is not None:
-            print('load pretrained causalnet weights')
+            print('load pretrained controlnet cond-embedding weights')
             controlnet.controlnet_cond_embedding.load_state_dict(torch.load(cond_path,weights_only=True))
     elif args.dataset == 'ADNI':
         A_matrix = torch.tensor([[0, 0,0, 1, 0,0], [0, 0,0, 1, 1,0], [0, 0,0,1,0, 0], [0, 0, 0, 0,1,0],[0, 0, 0, 0,0,0],[0, 0, 0, 0,0,0]],dtype=torch.float32).to(device)

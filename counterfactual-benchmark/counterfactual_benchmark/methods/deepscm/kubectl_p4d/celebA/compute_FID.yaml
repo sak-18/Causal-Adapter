@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: fcvm-kubectl-examplev1
+  name: kzzr229-fid-compute5
   namespace: fcvm
 spec:
   ttlSecondsAfterFinished: 10
@@ -33,18 +33,20 @@ spec:
             claimName: fcvm-data-volume
       containers:
         - name: pytorch-job
-          image: harbor.csis.astrazeneca.net/azimuth-iron/cai-bp/cuda121/codeserver
+          image: harbor.csis.astrazeneca.net/azimuth-iron/cai-bp/cuda122/p4d:latest
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /home/jovyan/fcvm-data-volume
               name: fcvm-data-volume
           env:
             - name: HTTP_PROXY
-              value: http://azpzen.astrazeneca.net:9480
+              value: http://azpse.astrazeneca.net:9480
             - name: HTTPS_PROXY
-              value: http://azpzen.astrazeneca.net:9480
+              value: http://azpse.astrazeneca.net:9480
             - name: NO_PROXY
               value: 10.0.0.0/8,172.29.0.0/8,astrazeneca.net
+            # - name: TMPDIR
+            #   value: "/home/jovyan/vol-1/root_chen/git_chen/data/data_chen/tmp"
             # - name: WANDB_BASE_URL
             #   value: https://azimuth-wandb.paas-iron.astrazeneca.net
             # - name: WANDB_API_KEY
@@ -57,52 +59,39 @@ spec:
             - |
               export PATH="$HOME/bin:$PATH"
               export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
+              export MKL_NUM_THREADS=1
+              export OMP_NUM_THREADS=1
               source ~/.bashrc
               source activate mcpl
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd 
-              accelerate launch MCPL_linear.py --output_name "mcpl-one-r2" \
-                --dataset 'chexpert' \
-                --output_dir "./logs/logs_chexpert_data100/" \
-                --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
-                --train_data_dir "/causal_datasets/cheXpert/sampling_100" \
-                --learnable_property "object" \
-                --resolution 256 \
-                --train_batch_size 4 \
-                --gradient_accumulation_steps 1 \
-                --max_train_steps 6100 \
-                --checkpointing_steps 6100 \
-                --learning_rate 5.0e-04 \
-                --lr_scheduler "constant" \
-                --lr_warmup_steps 0 \
-                --placeholder_string 'a detailed chest x ray image of a age year old gender patient diagnosed with specific disease' \
-                --presudo_words 'year,patient,disease' \
-                --attn_words "age,gender,specific,year,patient,disease" \
-                --presudo_words_softmax "year,patient,disease" \
-                --presudo_words_infonce "year,patient,disease" \
-                --infonce_temperature 0.3 \
-                --infonce_scale 0.00075 \
-                --adj_aug_infonce 'age,gender,specific' \
-                --embedding_extension True \
+              cd /counterfactual_benchmark/methods/deepscm
+              accelerate launch compute_FID.py --dataset "celeA_complex" \
+                --metrics "minimality" \
+                --bs 100 \
+                --embeddings "vae" \
+                --file_saved_path "./saved_ablation/celeA_complex/DSCM_effectiveness_step500.0_scale3.0_NTIFalse_2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/FID" \
+                --controlnet_path "/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/controlnet-steps-100000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/learned_embeds-steps-100000.safetensors"
+
           resources:
             requests:
-              memory: "100Gi"
-              cpu: "10"
-              # nvidia.com/gpu: "1"
+              memory: "50Gi"
+              cpu: "2"
+              nvidia.com/gpu: 1
             limits:
-              memory: "100Gi"
-              cpu: "10"
-              # nvidia.com/gpu: "1"
+              memory: "50Gi"
+              cpu: "2"
+              nvidia.com/gpu: 1
       nodeSelector:
-        instance-type: g5.8xlarge
+        instance-type: p4d.24xlarge
       tolerations:
-      - key: "as_gpu_g5_8xlarge_ns"
+      - key: "as_gpu_p4d_24xlarge_reserved_ns"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-      - key: "as_gpu_g5_8xlarge_ne"
+      - key: "as_gpu_p4d_24xlarge_reserved_ne"
         operator: "Equal"
         value: "true"
         effect: "NoExecute"

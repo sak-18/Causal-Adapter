@@ -1,3 +1,18 @@
+import os
+from pathlib import Path
+
+# Path bootstrap (must run before any first-party import). See _paths.py.
+# NOTE: this is the legacy baseline evaluation script (no celeba-HQ / anti-causal
+# support). It is kept separate from the unified evaluate_SD_DSCM.py because the
+# published ADNI / pendulum numbers were produced with it.
+from _paths import bootstrap, REPO_ROOT, DEEPSCM_CONFIG_DIR
+bootstrap()
+# Trained-causalnet weights / logs now live at the project root (the old
+# `causal-adapter-sd15` sub-repo was merged into the root layout).
+SD15_ROOT = REPO_ROOT
+os.environ["NCCL_IGNORE_DISABLED_P2P"] = "1"
+os.environ.setdefault("TORCH_HOME", str(REPO_ROOT / "counterfactual-benchmark" / ".cache" / "torch"))
+
 import torch
 import numpy as np
 from typing import Dict, List
@@ -7,20 +22,9 @@ from model import SCM
 from tqdm import tqdm
 import torch.nn as nn
 from torch.utils.data import Dataset
-import os
-from pathlib import Path
-
-REPO_ROOT = Path(__file__).resolve().parents[4]
-DEEPSCM_CONFIG_DIR = REPO_ROOT / "counterfactual-benchmark" / "counterfactual_benchmark" / "methods" / "deepscm" / "configs"
-SD15_ROOT = REPO_ROOT / "causal-adapter-sd15"
-os.environ["NCCL_IGNORE_DISABLED_P2P"] = "1"
-os.environ.setdefault("TORCH_HOME", str(REPO_ROOT / "counterfactual-benchmark" / ".cache" / "torch"))
-import numpy as np
 import argparse
 import random
 import sys
-sys.path.append("../../")
-sys.path.append(str(REPO_ROOT / "causal-adapter-sd15"))
 
 from causal_modules import ddim_modules
 import pickle
@@ -599,10 +603,10 @@ def parse_arguments():
         help="enable null textual inversion?")
     parser.add_argument("--num_steps", type=float, default=50, help="Sampling temperature, used for VAE, HVAE.")
     parser.add_argument("--guidance_scale", type=float, default=1.0, help="Sampling temperature, used for VAE, HVAE.")
-    parser.add_argument("--causalnet_path", 
+    parser.add_argument("--controlnet_path", 
         type=str,
         default=None,
-        help="load causalnet")
+        help="Path to the trained Causal-ControlNet checkpoint")
     parser.add_argument("--mcpl_embedding_path", 
         type=str,
         default=None,
@@ -620,7 +624,7 @@ if __name__ == "__main__":
 
     print(args)
     base_model_path = os.environ.get("CAUSAL_ADAPTER_SD15_BASE_MODEL", "lambdalabs/miniSD-diffusers")
-    controlnet_path = args.causalnet_path
+    controlnet_path = args.controlnet_path
     mcpl_embedding_path = args.mcpl_embedding_path
     accelerator = Accelerator()
     controlnet = Causal_ControlNetModel.from_pretrained(controlnet_path,torch_dtype=torch.float32)
@@ -630,7 +634,7 @@ if __name__ == "__main__":
         prompt = 'a human of @ and * and & and !'
         presudo_words= '@,*,&,!'
         if cond_path is not None:
-            print('load pretrained causalnet weights')
+            print('load pretrained controlnet cond-embedding weights')
             controlnet.controlnet_cond_embedding.load_state_dict(torch.load(cond_path,weights_only=True))
     elif args.dataset == 'ADNI':
         #A_matrix = torch.tensor([[0, 0,0, 1, 0,0], [0, 0,0, 1, 1,0], [0, 0,0,1,0, 0], [0, 0, 0, 0,1,0],[0, 0, 0, 0,0,0],[0, 0, 0, 0,0,0]],dtype=torch.float32).to(device)
@@ -642,7 +646,7 @@ if __name__ == "__main__":
         '''test with causal discovered matrix'''
         cond_path = str(SD15_ROOT / "logs" / "logs_ADNI_all" / "2025-08-14T15-33-26-causal_discovered_matrix" / "best_model.pt")
         if cond_path is not None:
-            print('load pretrained causalnet weights')
+            print('load pretrained controlnet cond-embedding weights')
             controlnet.controlnet_cond_embedding.load_state_dict(torch.load(cond_path,weights_only=True))
         A_matrix=torch.tensor([[0, 0,0, 1, 0,0], [0, 0,1, 0, 1,0], [0, 0,0,1,0, 0], [0, 0, 0, 0,1,0],[0, 0, 0, 0,0,0],[0, 0, 0, 0,0,0]],dtype=torch.float32).to(device)
         # prompt = 'a mri image of @ and * and & and ! and $ and %'
@@ -654,7 +658,7 @@ if __name__ == "__main__":
         '''test with causal discovered matrix'''    
         cond_path = str(SD15_ROOT / "logs" / "logs_pendulum_all" / "2025-08-14T14-58-49-causal_discovered_matrix" / "best_model.pt")
         if cond_path is not None:
-            print('load pretrained causalnet weights')
+            print('load pretrained controlnet cond-embedding weights')
             controlnet.controlnet_cond_embedding.load_state_dict(torch.load(cond_path,weights_only=True))
         A_matrix=torch.tensor([[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 1, 0]],dtype=torch.float32).to(device)
     

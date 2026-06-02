@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kzzr229-pend-reg1
+  name: kzzr229-ablation-method4
   namespace: fcvm
 spec:
   ttlSecondsAfterFinished: 10
@@ -64,41 +64,28 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd 
-              accelerate launch causal_discovery.py  --output_name "DAG3_warmup5000_lr1e04" \
-                --output_dir "./logs_mtx/logs_celeA_complex_all" \
-                --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
-                --dataset 'celeA_complex' \
-                --train_data_dir "/datasets/" \
-                --learnable_property "object" \
-                --resolution 256 \
-                --mixed_precision "no" \
-                --train_batch_size 50 \
-                --dataloader_num_workers 0 \
-                --gradient_accumulation_steps 1\
-                --max_train_steps 15000 \
-                --net_warmup_steps 5000 \
-                --checkpointing_steps 999999 \
-                --learning_rate 1e-4 \
-                --lr_scheduler "constant" \
-                --lr_warmup_steps 0 \
-                --num_validation_images 1 \
-                --placeholder_string 'human face with different attributes' \
-                --presudo_words 'human,face,with,different,attributes' \
-                --concept_words "human,face" \
-                --mcpl_training "False" \
-                --mcpl_embedding_path "/logs/logs_celeA_all/2025-02-26T11-03-01-mcpl-all/learned_embeds-steps-6000.safetensors" \
-                
+              cd /counterfactual_benchmark/methods/deepscm
+              accelerate launch evaluate_SD_DSCM.py --editing p2p --dataset "celeA_complex" \
+                --metrics "effectiveness" \
+                --embeddings "lpips" \
+                --bs 10 \
+                --guidance_scale 3.0 \
+                --num_steps 50 \
+                --NTI "True" \
+                --controlnet_path "/logs/logs_celeA_complex_all/2025-08-15T11-47-12-controlnet_resume_flipgeneration_text_global_after/controlnet-steps-300000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-08-15T11-47-12-controlnet_resume_flipgeneration_text_global_after/learned_embeds-steps-300000.safetensors"
+
           resources:
             requests:
-              memory: "250Gi"
-              cpu: "20"
-              nvidia.com/gpu: 2
+              memory: "500Gi"
+              cpu: "50"
+              nvidia.com/gpu: 8
             limits:
-              memory: "250Gi"
-              cpu: "20"
-              nvidia.com/gpu: 2
+              memory: "500Gi"
+              cpu: "50"
+              nvidia.com/gpu: 8
       nodeSelector:
+        kubernetes.io/hostname: ip-10-201-11-219.emea.astrazeneca.net
         instance-type: p4d.24xlarge
       tolerations:
       - key: "as_gpu_p4d_24xlarge_reserved_ns"

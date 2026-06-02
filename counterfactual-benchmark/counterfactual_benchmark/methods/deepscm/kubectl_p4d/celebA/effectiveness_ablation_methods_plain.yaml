@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kzzr229-celea-evaluate8
+  name: kzzr229-ablation-fid5
   namespace: fcvm
 spec:
   ttlSecondsAfterFinished: 10
@@ -17,7 +17,6 @@ spec:
         project: azimuth
     spec:
       restartPolicy: Never
-      hostIPC: true
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -61,31 +60,32 @@ spec:
               export PATH="$HOME/bin:$PATH"
               export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
               source ~/.bashrc
-              source activate flux
+              source activate mcpl
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
               cd /counterfactual_benchmark/methods/deepscm
-              accelerate launch evaluate_SD_DSCM_SD3_celebahq_Effectiveness.py --dataset "celebahq_simple" \
-                --metrics "effectiveness" \
-                --embeddings "lpips" \
-                --bs 20 \
-                --guidance_scale 1.7 \
-                --num_steps 50 \
+              accelerate launch evaluate_SD_DSCM.py --dataset "celeA_complex" \
+                --metrics "minimality" \
+                --embeddings "vae" \
+                --bs 100 \
+                --guidance_scale 5.0 \
+                --num_steps 100 \
                 --NTI "False" \
-  
+                --controlnet_path "/logs/logs_celeA_complex_all/2025-05-20T14-44-34-controlnet_nomcplgeneration_image/controlnet-steps-100000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-05-20T14-44-34-controlnet_nomcplgeneration_image/learned_embeds-steps-100000.safetensors"
+
           resources:
             requests:
-              memory: "100Gi"
-              cpu: "8"
-              nvidia.com/gpu: 4
+              memory: "50Gi"
+              cpu: "5"
+              nvidia.com/gpu: 1
             limits:
-              memory: "100Gi"
-              cpu: "8"
-              nvidia.com/gpu: 4
+              memory: "50Gi"
+              cpu: "5"
+              nvidia.com/gpu: 1
       nodeSelector:
         instance-type: p4d.24xlarge
-        kubernetes.io/hostname: ip-10-201-11-210.emea.astrazeneca.net
       tolerations:
       - key: "as_gpu_p4d_24xlarge_reserved_ns"
         operator: "Equal"

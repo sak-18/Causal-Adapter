@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: fcvm-kubectl-example
+  name: kzzr229-ablation-method7
   namespace: fcvm
 spec:
   ttlSecondsAfterFinished: 10
@@ -33,18 +33,20 @@ spec:
             claimName: fcvm-data-volume
       containers:
         - name: pytorch-job
-          image: harbor.csis.astrazeneca.net/azimuth-iron/cai-bp/cuda121/codeserver
+          image: harbor.csis.astrazeneca.net/azimuth-iron/cai-bp/cuda122/p4d:latest
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /home/jovyan/fcvm-data-volume
               name: fcvm-data-volume
           env:
             - name: HTTP_PROXY
-              value: http://azpzen.astrazeneca.net:9480
+              value: http://azpse.astrazeneca.net:9480
             - name: HTTPS_PROXY
-              value: http://azpzen.astrazeneca.net:9480
+              value: http://azpse.astrazeneca.net:9480
             - name: NO_PROXY
               value: 10.0.0.0/8,172.29.0.0/8,astrazeneca.net
+            # - name: TMPDIR
+            #   value: "/home/jovyan/vol-1/root_chen/git_chen/data/data_chen/tmp"
             # - name: WANDB_BASE_URL
             #   value: https://azimuth-wandb.paas-iron.astrazeneca.net
             # - name: WANDB_API_KEY
@@ -62,44 +64,35 @@ spec:
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
-              cd 
-              accelerate launch causalnet.py  --output_name "controlnet_intial_mcplall" \
-                  --output_dir "./logs/logs_chexpert_data100" \
-                  --pretrained_model_name_or_path "/.cache/huggingface/hub/models--lambdalabs--miniSD-diffusers/snapshots/26ed8a9bfbf76f46a6cf60517dde321f900c44ce" \
-                  --dataset 'chexpert' \
-                  --train_data_dir "/causal_datasets/cheXpert/sampling_100" \
-                  --learnable_property "object" \
-                  --resolution 256 \
-                  --train_batch_size 8 \
-                  --dataloader_num_workers 0 \
-                  --gradient_accumulation_steps 1 \
-                  --max_train_steps 30000 \
-                  --checkpointing_steps 999999 \
-                  --learning_rate 1e-5 \
-                  --lr_scheduler "constant" \
-                  --lr_warmup_steps 0 \
-                  --num_validation_images 1 \
-                  --placeholder_string 'a detailed chest x ray image of a age year old gender patient diagnosed with specific disease' \
-                  --presudo_words 'a,detailed,chest,x,ray,image,of,age,year,old,gender,patient,diagnosed,with,specific,disease' \
-                  --mcpl_training "False" \
-                  --mcpl_embedding_path "/logs/logs_chexpert_data100/2024-12-05T11-32-41-mcpl-all/learned_embeds-steps-6000.safetensors" \
+              cd /counterfactual_benchmark/methods/deepscm
+              accelerate launch evaluate_SD_DSCM.py --editing p2p --dataset "celeA_complex" \
+                --metrics "effectiveness" \
+                --embeddings "lpips" \
+                --bs 10 \
+                --guidance_scale 1.0 \
+                --num_steps 50 \
+                --NTI "True" \
+                --controlnet_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-200000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-200000.safetensors"
+
           resources:
             requests:
-              memory: "100Gi"
-              cpu: "10"
-              # nvidia.com/gpu: "1"
+              memory: "500Gi"
+              cpu: "50"
+              nvidia.com/gpu: 8
             limits:
-              memory: "100Gi"
-              cpu: "10"
-              # nvidia.com/gpu: "1"
+              memory: "500Gi"
+              cpu: "50"
+              nvidia.com/gpu: 8
       nodeSelector:
-        instance-type: g5.8xlarge
+        #kubernetes.io/hostname: ip-10-201-11-219.emea.astrazeneca.net
+        instance-type: p4d.24xlarge
       tolerations:
-      - key: "as_gpu_g5_8xlarge_ns"
+      - key: "as_gpu_p4d_24xlarge_reserved_ns"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-      - key: "as_gpu_g5_8xlarge_ne"
+      - key: "as_gpu_p4d_24xlarge_reserved_ne"
         operator: "Equal"
         value: "true"
         effect: "NoExecute"

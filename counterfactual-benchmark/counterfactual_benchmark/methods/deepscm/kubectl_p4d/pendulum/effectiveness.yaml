@@ -72,7 +72,7 @@ spec:
                 --guidance_scale 3.0 \
                 --num_steps 50 \
                 --NTI "True" \
-                --causalnet_path "/logs/logs_pendulum_all/2025-06-02T11-43-33-controlnet_textcond_contrast_gaussianfloatgeneration_text_global_after/controlnet-steps-20000.safetensors" \
+                --controlnet_path "/logs/logs_pendulum_all/2025-06-02T11-43-33-controlnet_textcond_contrast_gaussianfloatgeneration_text_global_after/controlnet-steps-20000.safetensors" \
                 --mcpl_embedding_path "/logs/logs_pendulum_all/2025-06-02T11-43-33-controlnet_textcond_contrast_gaussianfloatgeneration_text_global_after/learned_embeds-steps-20000.safetensors"
 
           resources:

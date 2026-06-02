@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kzzr229-celea-evaluate8
+  name: kzzr229-p2p-pai
   namespace: fcvm
 spec:
   ttlSecondsAfterFinished: 10
@@ -17,7 +17,6 @@ spec:
         project: azimuth
     spec:
       restartPolicy: Never
-      hostIPC: true
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -60,38 +59,42 @@ spec:
             - |
               export PATH="$HOME/bin:$PATH"
               export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
+              export MKL_NUM_THREADS=1
+              export OMP_NUM_THREADS=1
               source ~/.bashrc
               source activate mcpl
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
               cd /counterfactual_benchmark/methods/deepscm
-              accelerate launch evaluate_SD_DSCM.py --dataset "celeA_complex" \
-                --metrics "effectiveness" \
-                --embeddings "lpips" \
-                --bs 50 \
+              accelerate launch evaluate_SD_DSCM.py --editing p2p --dataset "celeA_complex" \
+                --metrics "minimality" \
+                --bs 10 \
+                --embeddings "vae" \
                 --guidance_scale 3.0 \
-                --num_steps 100 \
-                --NTI "False" \
-                --causalnet_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-200000.safetensors" \
-                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-200000.safetensors"
+                --num_steps 50 \
+                --NTI "True" \
+                --controlnet_path "/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/controlnet-steps-100000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-21T08-46-52-controlnet_textcond_nocontrastgeneration_text_global_after/learned_embeds-steps-100000.safetensors"
+
           resources:
             requests:
-              memory: "100Gi"
+              memory: "200Gi"
               cpu: "10"
-              #nvidia.com/gpu: "1"
+              nvidia.com/gpu: 4
             limits:
-              memory: "100Gi"
+              memory: "200Gi"
               cpu: "10"
-              #nvidia.com/gpu: "1"
+              nvidia.com/gpu: 4
       nodeSelector:
-        instance-type: g5.24xlarge
+        instance-type: p4d.24xlarge
+        kubernetes.io/hostname: ip-10-201-11-10.emea.astrazeneca.net
       tolerations:
-      - key: "as_gpu_g5_24xlarge_ns"
+      - key: "as_gpu_p4d_24xlarge_reserved_ns"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-      - key: "as_gpu_g5_24xlarge_ne"
+      - key: "as_gpu_p4d_24xlarge_reserved_ne"
         operator: "Equal"
         value: "true"
         effect: "NoExecute"

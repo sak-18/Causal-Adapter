@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kzzr229-test-gan
+  name: kzzr229-compo-test3
   namespace: fcvm
 spec:
   ttlSecondsAfterFinished: 10
@@ -59,26 +59,33 @@ spec:
             - |
               export PATH="$HOME/bin:$PATH"
               export PATH="/home/jovyan/fcvm-data-volume/kzzr229/miniconda3/bin:$PATH"
-              export MKL_NUM_THREADS=1
-              export OMP_NUM_THREADS=1
               source ~/.bashrc
               source activate mcpl
               echo "-----nvidia check"
               nvidia-smi
               echo "-----training job" 
               cd /counterfactual_benchmark/methods/deepscm
-              python train.py -c ./configs/celeba/complex/gan.json
+              accelerate launch evaluate_SD_DSCM.py --dataset "celeA_complex" \
+                --metrics "composition" \
+                --cycles "1" "10" \
+                --embeddings "lpips" \
+                --num_steps 500 \
+                --bs 80 \
+                --controlnet_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/controlnet-steps-200000.safetensors" \
+                --mcpl_embedding_path "/logs/logs_celeA_complex_all/2025-04-23T17-05-57-controlnet_textcond_constrastivegeneration_text_global_after/learned_embeds-steps-200000.safetensors"
+
           resources:
             requests:
-              memory: "50Gi"
-              cpu: "5"
+              memory: "200Gi"
+              cpu: "20"
               nvidia.com/gpu: 1
             limits:
-              memory: "50Gi"
-              cpu: "5"
+              memory: "200Gi"
+              cpu: "20"
               nvidia.com/gpu: 1
       nodeSelector:
         instance-type: p4d.24xlarge
+        kubernetes.io/hostname: ip-10-201-11-10.emea.astrazeneca.net
       tolerations:
       - key: "as_gpu_p4d_24xlarge_reserved_ns"
         operator: "Equal"
