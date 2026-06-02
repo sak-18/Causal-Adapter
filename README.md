@@ -13,9 +13,8 @@
   <a href="https://leitong02.github.io/causaladapter/"><img src="https://img.shields.io/badge/Causal--Adapter-Homepage-C27B36.svg" alt="Causal-Adapter homepage"/></a>
   <a href="https://arxiv.org/abs/2509.24798"><img src="https://img.shields.io/badge/arXiv-2509.24798-b31b1b.svg" alt="arXiv"/></a>
   <a href="https://huggingface.co/LeiTong/Causal-Adapter"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Weights-ffd21e.svg" alt="Hugging Face weights"/></a>
-  <a href="#license"><img src="https://img.shields.io/badge/License-Apache%202.0-3da639.svg" alt="License: Apache 2.0"/></a>
   <img src="https://img.shields.io/badge/diffusers-0.36.0-ffd21e.svg" alt="diffusers 0.36.0"/>
-  <img src="https://img.shields.io/badge/PyTorch-2.4.1-ee4c2c.svg" alt="PyTorch 2.4.1"/>
+  <a href="#license"><img src="https://img.shields.io/badge/License-Apache%202.0-3da639.svg" alt="License: Apache 2.0"/></a>
 </p>
 
 <p align="center">
@@ -155,7 +154,7 @@ attention-map figures used in the paper.
 | `counterfactuals_pendulum.ipynb` | SD1.5 | Pendulum | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
 | `counterfactuals_celeba.ipynb` | SD1.5 | CelebA (complex) | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
 | `counterfactuals_ADNI.ipynb` | SD1.5 | ADNI | [🤗 miniSD-diffusers](https://huggingface.co/lambdalabs/miniSD-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
-| `counterfactuals_celebahq_SD3.ipynb` | SD3 | CelebA-HQ (simple) | [🤗 stable-diffusion-3](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [[🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
+| `counterfactuals_celebahq_SD3.ipynb` | SD3 | CelebA-HQ (simple) | [🤗 stable-diffusion-3](https://huggingface.co/stabilityai/stable-diffusion-3-medium-diffusers) | [🤗 HuggingFace](https://huggingface.co/LeiTong/Causal-Adapter) |
 
 
 Each notebook starts with a configuration cell. The example below shows the main
