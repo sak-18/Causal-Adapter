@@ -323,7 +323,7 @@ Before running evaluation, please check the following path-dependent settings.
 
 ---
 
-## 🙏 Citation & credits
+##   Citation & credits
 
 This benchmark is based on the work of Melistas et al. Please cite the original paper and refer to the upstream repository for the full benchmark details and third-party credits.
 
