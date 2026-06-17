@@ -229,5 +229,5 @@ Ltd. or its affiliates`). Third-party code — including
 [`diffusers`](https://github.com/huggingface/diffusers),
 [prompt-to-prompt](https://github.com/google/prompt-to-prompt),
 [counterfactual-benchmark](https://github.com/gulnazaki/counterfactual-benchmark),
-and the DCDI / NOTEARS / DAGMA implementations — keeps its original license and
+and the SDCD / NOTEARS / DAGMA implementations — keeps its original license and
 copyright header.
