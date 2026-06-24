@@ -10,6 +10,8 @@ Loads the IDX-format images and the per-image metrics CSV via
 
 from __future__ import annotations
 
+import os
+
 import pandas as pd
 import torch
 from PIL import Image
@@ -25,21 +27,30 @@ class MorphoMNISTAdapter(DatasetAdapter):
 
     def __init__(self, data_root: str, size: int, set_: str, **_: object):
         super().__init__()
-        train_bool = set_ == "train"
-        images_path, labels_path, metrics_path = _get_paths(data_root, train=train_bool)
-        images = load_idx(images_path)
-        labels = load_idx(labels_path)
-        metric = pd.read_csv(metrics_path, index_col="index")
+        split_dir = os.path.join(data_root, set_)
+        split_csv = os.path.join(data_root, f"{set_}.csv")
+        if os.path.isdir(split_dir) and os.path.isfile(split_csv):
+            # Per-split layout: PNGs in <set_>/ named by row index + a csv with
+            # columns index,thickness,intensity,label (supports a val split).
+            metric = pd.read_csv(split_csv, index_col="index")
+            self.data = [os.path.join(split_dir, f"{i}.png") for i in metric.index]
+        else:
+            # Back-compat: idx arrays (train/t10k only, no val).
+            train_bool = set_ == "train"
+            images_path, labels_path, metrics_path = _get_paths(data_root, train=train_bool)
+            images = load_idx(images_path)
+            labels = load_idx(labels_path)
+            metric = pd.read_csv(metrics_path, index_col="index")
+            metric["label"] = labels
+            self.data = [Image.fromarray(images[i]) for i in range(images.shape[0])]
 
-        metric["label"] = labels
         metric = zscore_continu_minmax_categorical(
             metric,
             z_score_columns=["thickness", "intensity"],
             min_max_columns=["label"],
         )
 
-        self.num_images = len(images)
-        self.data = [Image.fromarray(images[i]) for i in range(images.shape[0])]
+        self.num_images = len(self.data)
         # Column order in imglabel: thickness, intensity, label.
         self.imglabel = torch.from_numpy(metric.values)
 
@@ -53,4 +64,5 @@ class MorphoMNISTAdapter(DatasetAdapter):
         self.normalize_transforms = make_normalize_transform()
 
     def load_image(self, idx: int):
-        return self.data[idx]
+        src = self.data[idx]
+        return src if isinstance(src, Image.Image) else Image.open(src)

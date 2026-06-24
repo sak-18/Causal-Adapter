@@ -24,12 +24,15 @@ from .base import DatasetAdapter, make_normalize_transform
 class PendulumAdapter(DatasetAdapter):
     dataset_name = "pendulum"
 
-    def __init__(self, data_root: str, size: int, **_: object):
+    def __init__(self, data_root: str, size: int, set_: str = "train", **_: object):
         super().__init__()
-        self.data_root = data_root
+        # Prefer the per-split subdir (train/ val/ test/); fall back to a flat
+        # dir of PNGs for backward compatibility with the upstream layout.
+        split_dir = os.path.join(data_root, set_)
+        self.data_root = split_dir if os.path.isdir(split_dir) else data_root
 
-        listing = os.listdir(data_root)
-        self.image_paths = [os.path.join(data_root, fp) for fp in listing]
+        listing = sorted(fp for fp in os.listdir(self.data_root) if fp.endswith(".png"))
+        self.image_paths = [os.path.join(self.data_root, fp) for fp in listing]
         self.image_names = [fp.split(".")[0] for fp in listing]
         self.num_images = len(self.image_paths)
 

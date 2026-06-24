@@ -46,3 +46,6 @@ outputs/
 wandb/
 # SD3 training-time visualisation dumps (created by train_SD3.py)
 textcond/
+
+# scratch env symlink (created by make baseline-causal-adapter-env)
+.venv
