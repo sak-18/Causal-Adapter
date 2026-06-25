@@ -32,10 +32,15 @@ class MorphoMNISTAdapter(DatasetAdapter):
         if not os.path.isfile(split_csv):  # pre-reorg fallback
             split_csv = os.path.join(data_root, f"{set_}.csv")
         if os.path.isdir(split_dir) and os.path.isfile(split_csv):
-            # Per-split layout: PNGs in <set_>/ named by row index + a csv with
-            # columns index,thickness,intensity,label (supports a val split).
+            # Per-split layout: PNGs in <set_>/ + a csv with columns
+            # index,thickness,intensity,label (supports a val split). Files are
+            # named "<set_>_<index>.png" (globally unique); fall back to the
+            # older "<index>.png" scheme.
             metric = pd.read_csv(split_csv, index_col="index")
-            self.data = [os.path.join(split_dir, f"{i}.png") for i in metric.index]
+            ids = list(metric.index)
+            prefixed = (not ids) or os.path.isfile(os.path.join(split_dir, f"{set_}_{ids[0]}.png"))
+            tmpl = f"{set_}_{{}}.png" if prefixed else "{}.png"
+            self.data = [os.path.join(split_dir, tmpl.format(i)) for i in ids]
         else:
             # Back-compat: idx arrays (train/t10k only, no val), under raw/ or root.
             train_bool = set_ == "train"
