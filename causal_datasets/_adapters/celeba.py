@@ -5,8 +5,8 @@
 
 Reads the aligned CelebA images from a per-split folder layout
 (``<data_root>/{train,val,test}/<file>.jpg``) and the attribute annotations
-from ``<data_root>/list_attr_celeba.txt``. ``celeA_simple`` selects ``Smiling``
-and ``Eyeglasses``; ``celeA_complex`` selects ``Young``, ``Male``,
+from ``<data_root>/annotations/list_attr_celeba.txt``. ``celeA_simple`` selects
+``Smiling`` and ``Eyeglasses``; ``celeA_complex`` selects ``Young``, ``Male``,
 ``No_Beard``, ``Bald``. Attribute values are remapped from {-1, 1} to {0, 1}.
 """
 
@@ -51,7 +51,10 @@ class CelebAAdapter(DatasetAdapter):
             raise ValueError(f"Unknown CelebA variant: {dataset!r}")
 
         self.img_dir = os.path.join(data_root, _SPLIT_DIR.get(set_, set_))
-        names, attrs = parse_attr_file(os.path.join(data_root, "list_attr_celeba.txt"))
+        attr_path = os.path.join(data_root, "annotations", "list_attr_celeba.txt")
+        if not os.path.isfile(attr_path):  # pre-reorg fallback
+            attr_path = os.path.join(data_root, "list_attr_celeba.txt")
+        names, attrs = parse_attr_file(attr_path)
         self.filenames = sorted(fn for fn in os.listdir(self.img_dir) if fn.endswith(".jpg"))
         self.num_images = len(self.filenames)
 

@@ -28,16 +28,21 @@ class MorphoMNISTAdapter(DatasetAdapter):
     def __init__(self, data_root: str, size: int, set_: str, **_: object):
         super().__init__()
         split_dir = os.path.join(data_root, set_)
-        split_csv = os.path.join(data_root, f"{set_}.csv")
+        split_csv = os.path.join(data_root, "splits", f"{set_}.csv")
+        if not os.path.isfile(split_csv):  # pre-reorg fallback
+            split_csv = os.path.join(data_root, f"{set_}.csv")
         if os.path.isdir(split_dir) and os.path.isfile(split_csv):
             # Per-split layout: PNGs in <set_>/ named by row index + a csv with
             # columns index,thickness,intensity,label (supports a val split).
             metric = pd.read_csv(split_csv, index_col="index")
             self.data = [os.path.join(split_dir, f"{i}.png") for i in metric.index]
         else:
-            # Back-compat: idx arrays (train/t10k only, no val).
+            # Back-compat: idx arrays (train/t10k only, no val), under raw/ or root.
             train_bool = set_ == "train"
-            images_path, labels_path, metrics_path = _get_paths(data_root, train=train_bool)
+            raw_root = os.path.join(data_root, "raw")
+            if not os.path.isdir(raw_root):
+                raw_root = data_root
+            images_path, labels_path, metrics_path = _get_paths(raw_root, train=train_bool)
             images = load_idx(images_path)
             labels = load_idx(labels_path)
             metric = pd.read_csv(metrics_path, index_col="index")
