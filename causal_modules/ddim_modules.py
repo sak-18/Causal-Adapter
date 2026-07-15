@@ -705,7 +705,8 @@ def load_mcpl_embeddings(
     base_model_path,
     tokenizer,
     embedding_path=None,
-    pseudo_token_ids=None
+    pseudo_token_ids=None,
+    embed_control=None,  # accepted for signature-compat with evaluate_SD.py (unused here)
 ):
     text_encoder = CLIPTextModel.from_pretrained(
         base_model_path, subfolder="text_encoder"
